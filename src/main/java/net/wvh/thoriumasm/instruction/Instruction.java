@@ -136,16 +136,8 @@ public abstract class Instruction {
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
-	public static void addSymbol(String symbol, Class<? extends Instruction> type) {
-		instructionSymbols.put(symbol, type);
-	}
-
-	public static Class<? extends Instruction> getSymbol(String symbol) {
-		return instructionSymbols.get(symbol);
-	}
-
-	public static Instruction constructFromSymbol(String symbol, Variant destination, Variant source) {
-		Class<? extends Instruction> type = getSymbol(symbol);
+	private static Instruction constructFromSymbol(String symbol, Variant destination, Variant source) {
+		Class<? extends Instruction> type = instructionSymbols.get(symbol);
 
 		if (type == null) {
 			System.err.println("Symbol not found: " + symbol);
