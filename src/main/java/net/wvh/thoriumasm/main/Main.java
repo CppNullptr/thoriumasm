@@ -5,25 +5,33 @@ import net.wvh.thoriumasm.exec.ExecutionState;
 import net.wvh.thoriumasm.exec.Executor;
 import net.wvh.thoriumasm.instruction.Instruction;
 import net.wvh.thoriumasm.instruction.math.AddInstruction;
+import net.wvh.thoriumasm.interpreter.AsmParser;
 import net.wvh.thoriumasm.state.InstructionStack;
 import net.wvh.thoriumasm.state.RegisterState;
+
+import java.util.List;
 
 public class Main {
 	public static void main(String[] args) {
 		String currentVersion = Main.class.getPackage().getImplementationVersion();
 		System.out.println("Thorium Assembler Version v%s".formatted(currentVersion));
 
-		Instruction instr1 = Instruction.deserialize("add 535, 15; comment");
-		Instruction instr2 = Instruction.deserialize("print regR");
+		AsmParser parser = new AsmParser("C:/Users/ma200/Downloads/test.tasm");
+
+		List<InstructionStack> parsedStacks = parser.parse();
+		System.out.println(parsedStacks);
 
 		Instruction.logSymbols();
 
 		try {
 			RegisterState registerState = new RegisterState();
+			InstructionStack instructionStack = null;
 
-			InstructionStack instructionStack = new InstructionStack("_start");
-			instructionStack.enqueue(instr1);
-			instructionStack.enqueue(instr2);
+			for (InstructionStack stack : parsedStacks) {
+				if (stack.getStackLabel().equals("_start")) {
+					instructionStack = stack;
+				}
+			}
 
 			Executor executor = new Executor(instructionStack, registerState);
 

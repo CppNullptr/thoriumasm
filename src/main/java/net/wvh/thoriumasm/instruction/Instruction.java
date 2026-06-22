@@ -136,6 +136,10 @@ public abstract class Instruction {
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
+	public static boolean isValidSymbol(String symbol) {
+		return instructionSymbols.containsKey(symbol);
+	}
+
 	private static Instruction constructFromSymbol(String symbol, Variant destination, Variant source) {
 		Class<? extends Instruction> type = instructionSymbols.get(symbol);
 

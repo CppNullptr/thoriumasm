@@ -12,6 +12,7 @@ repositories {
 
 dependencies {
     implementation("org.reflections:reflections:0.10.2")
+    implementation("org.slf4j:slf4j-nop:1.7.21")
 }
 
 tasks.withType<Jar> {
