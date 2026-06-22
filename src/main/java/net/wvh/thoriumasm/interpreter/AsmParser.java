@@ -43,6 +43,10 @@ public final class AsmParser {
 		Vector<Token> tokens = new Vector<>();
 
 		for (String line : lines) {
+			if (line.isBlank()) {
+				continue;
+			}
+
 			tokens.add(parseLine(line.trim()));
 			currentLine++;
 		}

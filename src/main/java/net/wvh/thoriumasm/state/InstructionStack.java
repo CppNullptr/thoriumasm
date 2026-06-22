@@ -37,4 +37,9 @@ public final class InstructionStack {
 	public String getStackLabel() {
 		return stackLabel;
 	}
+
+	@Override
+	public String toString() {
+		return stackLabel + ':';
+	}
 }
