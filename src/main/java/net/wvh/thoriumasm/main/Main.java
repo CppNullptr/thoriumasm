@@ -13,8 +13,8 @@ public class Main {
 		String currentVersion = Main.class.getPackage().getImplementationVersion();
 		System.out.println("Thorium Assembler Version v%s".formatted(currentVersion));
 
-		Instruction instruction = Instruction.deserialize("add regA, regB");
-		System.out.println(instruction);
+		Instruction instr1 = Instruction.deserialize("add 535, 15; comment");
+		Instruction instr2 = Instruction.deserialize("print regR");
 
 		Instruction.logSymbols();
 
@@ -22,7 +22,8 @@ public class Main {
 			RegisterState registerState = new RegisterState();
 
 			InstructionStack instructionStack = new InstructionStack("_start");
-			instructionStack.enqueue(instruction);
+			instructionStack.enqueue(instr1);
+			instructionStack.enqueue(instr2);
 
 			Executor executor = new Executor(instructionStack, registerState);
 
@@ -33,8 +34,6 @@ public class Main {
 			executionThread.start();
 
 			executionThread.join();
-
-			registerState.printRegisters();
 		} catch (Throwable e) {
 			System.err.println("Error %s occurred: %s".formatted(e.getClass().getSimpleName(), e.getMessage()));
 		}

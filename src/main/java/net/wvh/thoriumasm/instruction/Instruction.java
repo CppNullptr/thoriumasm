@@ -91,7 +91,14 @@ public abstract class Instruction {
 	}
 
 	public static final Instruction deserialize(String str) {
-		String[] tokens = str.split(" ");
+		String trimmedStr = str.trim();
+
+		int index = 0;
+		if ((index = trimmedStr.indexOf(";")) != -1) {
+			trimmedStr = trimmedStr.substring(0, index);
+		}
+
+		String[] tokens = trimmedStr.split(" ");
 
 		if (tokens.length == 0 || tokens.length > 3) {
 			return null;
@@ -102,19 +109,25 @@ public abstract class Instruction {
 
 		if (tokens.length >= 2) {
 			arg1 = tokens[1];
-			arg1 = arg1.substring(0, arg1.length() - 1);
+
+			if (arg1.charAt(arg1.length() - 1) == ',') {
+				arg1 = arg1.substring(0, arg1.length() - 1);
+			}
 		}
 
 		if (tokens.length == 3) {
 			arg2 = tokens[2];
-
-			if (arg2.charAt(arg2.length() - 1) == ';') {
-				arg2 = arg2.substring(0, arg2.length() - 1);
-			}
 		}
 
-		Variant destination = Variant.deserialize(arg1);
-		Variant source = Variant.deserialize(arg2);
+		Variant destination = null, source = null;
+
+		if (arg1 != null) {
+			destination = Variant.deserialize(arg1);
+		}
+
+		if (arg2 != null) {
+			source = Variant.deserialize(arg2);
+		}
 
 		return Instruction.constructFromSymbol(symbol, destination, source);
 	}

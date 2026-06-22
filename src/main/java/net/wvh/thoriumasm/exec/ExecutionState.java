@@ -3,8 +3,11 @@ package net.wvh.thoriumasm.exec;
 import net.wvh.thoriumasm.core.Variant;
 import net.wvh.thoriumasm.state.RegisterState;
 
+/// Encapsulates everything accessible to Instruction derivatives
 public final class ExecutionState {
 	private final RegisterState registers;
+
+	int currentIndex;
 
 	public ExecutionState(RegisterState registers) {
 		this.registers = registers;
@@ -22,6 +25,10 @@ public final class ExecutionState {
 		return registers.getShortRegisters();
 	}
 
+	public int getCurrentIndex() {
+		return currentIndex;
+	}
+
 	public void setResultRegister(long value) {
 		registers.setResultRegister(value);
 	}
@@ -32,5 +39,9 @@ public final class ExecutionState {
 
 	public byte getShortRegisterValue(Variant variant) {
 		return variant.getShortRegisterValue(registers);
+	}
+
+	public String formatVariant(Variant variant) {
+		return variant.toString(registers);
 	}
 }

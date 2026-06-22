@@ -11,13 +11,15 @@ public final class Variant {
 		OBJECT,
 		NUMBER,
 		STANDARD_REGISTER,
-		SHORT_REGISTER
+		SHORT_REGISTER,
+		RETURN_REGISTER
 	}
 
 	public static final Type OBJECT = Type.OBJECT;
 	public static final Type NUMBER = Type.NUMBER;
 	public static final Type STANDARD_REGISTER = Type.STANDARD_REGISTER;
 	public static final Type SHORT_REGISTER = Type.SHORT_REGISTER;
+	public static final Type RETURN_REGISTER = Type.RETURN_REGISTER;
 
 	private final Type type;
 	private final Object data;
@@ -45,6 +47,10 @@ public final class Variant {
 		return new Variant(SHORT_REGISTER, registerIndex);
 	}
 
+	public static Variant makeReturnRegisterVariant() {
+		return new Variant(RETURN_REGISTER, null);
+	}
+
 	// supports only registers and user numerals
 	public static Variant deserialize(String str) {
 		int result;
@@ -55,6 +61,9 @@ public final class Variant {
 		if ((result = RegisterState.shortRegisterIndexFromString(str))
 			!= Integer.MAX_VALUE) {
 			return Variant.makeShortRegisterVariant(result);
+		}
+		if (str.equals("regR")) {
+			return Variant.makeReturnRegisterVariant();
 		}
 
 		return Variant.makeNumberVariant(Integer.valueOf(str));
@@ -86,5 +95,52 @@ public final class Variant {
 		}
 
 		return registers.getShortRegisters()[(Integer)data];
+	}
+
+	public long getReturnRegisterValue(RegisterState registers) {
+		return registers.getResultRegister();
+	}
+
+	@Override
+	public String toString() {
+		return toString(null);
+	}
+
+	public String toString(RegisterState registers) {
+		switch (type) {
+			case NUMBER -> {
+				return String.valueOf((Integer)data);
+			}
+			case STANDARD_REGISTER -> {
+				if (registers == null) {
+					return "ST%d".formatted((Integer)data);
+				} else {
+					return String.valueOf(getStandardRegisterValue(registers));
+				}
+			}
+			case SHORT_REGISTER -> {
+				if (registers == null) {
+					return "SH%d".formatted((Integer)data);
+				} else {
+					return String.valueOf(getShortRegisterValue(registers));
+				}
+			}
+			case RETURN_REGISTER -> {
+				if (registers == null) {
+					return "Rval";
+				} else {
+					return String.valueOf(getReturnRegisterValue(registers));
+				}
+			}
+			case OBJECT -> {
+				if (data instanceof String) {
+					return (String)data;
+				} else {
+					data.toString();
+				}
+			}
+		}
+
+		return "null";
 	}
 }

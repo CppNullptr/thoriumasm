@@ -26,6 +26,7 @@ public final class Executor {
 				current = stack.dequeue();
 				current.execute(executionState);
 				currentIndex++;
+				executionState.currentIndex = currentIndex;
 			}
 		} catch (Throwable e) {
 			System.err.println("Executor failed to execute at index " + currentIndex);
