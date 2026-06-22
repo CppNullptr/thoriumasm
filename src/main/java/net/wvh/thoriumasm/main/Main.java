@@ -19,9 +19,6 @@ public class Main {
 		AsmParser parser = new AsmParser("C:/Users/ma200/Downloads/test.tasm");
 
 		List<InstructionStack> parsedStacks = parser.parse();
-		System.out.println(parsedStacks);
-
-		Instruction.logSymbols();
 
 		try {
 			RegisterState registerState = new RegisterState();
