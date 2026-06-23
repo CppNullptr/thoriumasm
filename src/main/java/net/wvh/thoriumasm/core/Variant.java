@@ -2,24 +2,26 @@ package net.wvh.thoriumasm.core;
 
 import net.wvh.thoriumasm.state.RegisterState;
 
+import java.util.List;
+
 /**
 Represents an argument for a instruction (for example print)
 It can be either a pointer to object, a user numeral or a register
 **/
 public final class Variant {
 	private enum Type {
-		OBJECT,
 		NUMBER,
 		STANDARD_REGISTER,
 		SHORT_REGISTER,
-		RETURN_REGISTER
+		RETURN_REGISTER,
+		LABEL
 	}
 
-	public static final Type OBJECT = Type.OBJECT;
 	public static final Type NUMBER = Type.NUMBER;
 	public static final Type STANDARD_REGISTER = Type.STANDARD_REGISTER;
 	public static final Type SHORT_REGISTER = Type.SHORT_REGISTER;
 	public static final Type RETURN_REGISTER = Type.RETURN_REGISTER;
+	public static final Type LABEL = Type.LABEL;
 
 	private final Type type;
 	private final Object data;
@@ -27,10 +29,6 @@ public final class Variant {
 	private Variant(Type type, Object data) {
 		this.type = type;
 		this.data = data;
-	}
-
-	public static Variant makeObjectVariant(Object data) {
-		return new Variant(OBJECT, data);
 	}
 
 	public static Variant makeNumberVariant(int number) {
@@ -51,8 +49,13 @@ public final class Variant {
 		return new Variant(RETURN_REGISTER, null);
 	}
 
-	// supports only registers and user numerals
-	public static Variant deserialize(String str) {
+	public static Variant makeLabelVariant(String label) {
+		return new Variant(LABEL, label);
+	}
+
+	// supports only registers, user numerals and symbols
+	// symbols parameter can be null if you do not want to have symbols from string
+	public static Variant deserialize(String str, List<String> symbols) {
 		int result;
 		if ((result = RegisterState.standardRegisterIndexFromString(str))
 			!= Integer.MAX_VALUE) {
@@ -64,6 +67,13 @@ public final class Variant {
 		}
 		if (str.equals("regR")) {
 			return Variant.makeReturnRegisterVariant();
+		}
+		if (symbols != null) {
+			for (String symbol : symbols) {
+				if (str.equals(symbol)) {
+					return Variant.makeLabelVariant(symbol);
+				}
+			}
 		}
 
 		return Variant.makeNumberVariant(Integer.valueOf(str));
@@ -132,12 +142,8 @@ public final class Variant {
 					return String.valueOf(getReturnRegisterValue(registers));
 				}
 			}
-			case OBJECT -> {
-				if (data instanceof String) {
-					return (String)data;
-				} else {
-					data.toString();
-				}
+			case LABEL -> {
+				return (String)data;
 			}
 		}
 

@@ -7,7 +7,7 @@ import net.wvh.thoriumasm.state.RegisterState;
 public final class ExecutionState {
 	private final RegisterState registers;
 
-	int currentIndex;
+	private String nextSymbol = "";
 
 	public ExecutionState(RegisterState registers) {
 		this.registers = registers;
@@ -25,10 +25,6 @@ public final class ExecutionState {
 		return registers.getShortRegisters();
 	}
 
-	public int getCurrentIndex() {
-		return currentIndex;
-	}
-
 	public void setResultRegister(long value) {
 		registers.setResultRegister(value);
 	}
@@ -39,6 +35,14 @@ public final class ExecutionState {
 
 	public byte getShortRegisterValue(Variant variant) {
 		return variant.getShortRegisterValue(registers);
+	}
+
+	public void setNextSymbol(String symbol) {
+		nextSymbol = symbol;
+	}
+
+	public String getNextSymbol() {
+		return nextSymbol;
 	}
 
 	public String formatVariant(Variant variant) {

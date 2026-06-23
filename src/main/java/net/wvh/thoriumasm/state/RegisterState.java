@@ -1,6 +1,9 @@
 package net.wvh.thoriumasm.state;
 
+import net.wvh.thoriumasm.core.Pair;
+
 import java.util.Arrays;
+import java.util.Vector;
 
 public final class RegisterState {
 	// standard registers

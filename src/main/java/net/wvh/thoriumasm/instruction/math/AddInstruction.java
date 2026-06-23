@@ -16,7 +16,7 @@ public final class AddInstruction extends Instruction {
 	}
 
 	@Override
-	public void execute(ExecutionState state) {
+	public byte execute(ExecutionState state, String currentSymbol, int index) {
 		if (!hasDestination() && !hasSource()) {
 			throw new RuntimeException("The add instruction requires a destination and a source");
 		}
@@ -43,5 +43,7 @@ public final class AddInstruction extends Instruction {
 		}
 
 		state.setResultRegister(arg1 + arg2);
+
+		return EXECUTION_OK;
 	}
 }

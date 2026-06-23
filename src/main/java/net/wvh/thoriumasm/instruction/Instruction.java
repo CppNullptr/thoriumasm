@@ -6,11 +6,7 @@ import org.reflections.Reflections;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.text.ParseException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public abstract class Instruction {
 	private static final Map<String, Class<? extends Instruction>> instructionSymbols;
@@ -40,6 +36,20 @@ public abstract class Instruction {
 		}
 	}
 
+	// is returned when the instruction did not make any errors
+	public static final byte EXECUTION_OK = 0x0;
+
+	// signals that the next instruction should be skipped
+	// this can be used in if, or, xor instructions
+	public static final byte SKIP_NEXT = 0x1;
+
+	// means that instead of the next instruction, executor
+	// should jump to a label specified in RegisterState
+	public static final byte JUMP_LABEL = 0x2;
+
+	// returned by the 'ret' instruction
+	public static final byte EXECUTION_RET = 0x3;
+
 	private Variant destination, source;
 
 	protected Instruction(Variant destination, Variant source) {
@@ -47,7 +57,9 @@ public abstract class Instruction {
 		this.source = source;
 	}
 
-	public abstract void execute(ExecutionState state);
+	// returns a code
+	public abstract byte execute(ExecutionState state, String currentLabel,
+				     int currentIndex) throws InstructionException;
 
 	public final boolean hasDestination() {
 		return destination != null;
@@ -74,7 +86,8 @@ public abstract class Instruction {
 	}
 
 	/// Very slow because of reflection, searches for "getIdentifier" method
-	/// that returns the identifier as String without arguments
+	/// that returns the identifier as String without arguments.
+	/// Returns null if no public 'getIdentifier()' method is present
 	public final String getReflectedIdentifier() {
 		try {
 			Method getIdentifier = this.getClass().getMethod("getIdentifier");
@@ -90,7 +103,8 @@ public abstract class Instruction {
 		return getReflectedIdentifier();
 	}
 
-	public static final Instruction deserialize(String str) {
+	// symbols parameter can be null
+	public static final Instruction deserialize(String str, List<String> symbols) {
 		String trimmedStr = str.trim();
 
 		int index = 0;
@@ -122,11 +136,11 @@ public abstract class Instruction {
 		Variant destination = null, source = null;
 
 		if (arg1 != null) {
-			destination = Variant.deserialize(arg1);
+			destination = Variant.deserialize(arg1, symbols);
 		}
 
 		if (arg2 != null) {
-			source = Variant.deserialize(arg2);
+			source = Variant.deserialize(arg2, symbols);
 		}
 
 		return Instruction.constructFromSymbol(symbol, destination, source);

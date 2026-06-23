@@ -5,6 +5,7 @@ import net.wvh.thoriumasm.state.InstructionStack;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.security.UnresolvedPermission;
 import java.util.*;
 
 // Parses a file and outputs a list of instruction stacks!
@@ -15,6 +16,7 @@ public final class AsmParser {
 
 	private Vector<InstructionStack> stack = null;
 	private String lastSymbol = "";
+	private List<String> symbols = null;
 
 	public AsmParser(File file) {
 		try (Scanner scanner = new Scanner(file)) {
@@ -42,6 +44,8 @@ public final class AsmParser {
 
 		Vector<Token> tokens = new Vector<>();
 
+		symbols = parseLabels(lines);
+
 		for (String line : lines) {
 			if (line.isBlank()) {
 				continue;
@@ -57,7 +61,7 @@ public final class AsmParser {
 
 		for (Token token : tokens) {
 			if (token.getType() == Token.INSTRUCTION) {
-				Instruction instruction = Instruction.deserialize((String)token.getData());
+				Instruction instruction = Instruction.deserialize((String)token.getData(), symbols);
 
 				stack.lastElement().enqueue(instruction);
 			} else if (token.getType() == Token.SYMBOL_DECL) {
@@ -71,9 +75,7 @@ public final class AsmParser {
 	}
 
 	private Token parseLine(String line) {
-		if (line.charAt(line.length() - 1) == ':') {
-			lastSymbol = line.substring(0, line.length() - 1);
-
+		if (!(lastSymbol = parseSymbol(line)).isEmpty()) {
 			return Token.makeSymbolDeclaration(lastSymbol, currentLine);
 		}
 
@@ -87,6 +89,30 @@ public final class AsmParser {
 			return Token.makeInstruction(line, currentLine);
 		} else {
 			throw new ParseException("Unknown identifier at line " + currentLine);
+		}
+	}
+
+	private List<String> parseLabels(String[] lines) {
+		List<String> result = new ArrayList<>();
+
+		for (String line : lines) {
+			String parsed = parseSymbol(line);
+
+			if (!parsed.isEmpty()) {
+				result.add(parsed);
+			}
+		}
+
+		return result;
+	}
+
+	private String parseSymbol(String line) {
+		if (line.charAt(line.length() - 1) == ':') {
+			String result = line.substring(0, line.length() - 1);
+
+			return result;
+		} else {
+			return "";
 		}
 	}
 
