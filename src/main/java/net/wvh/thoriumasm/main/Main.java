@@ -6,6 +6,7 @@ import net.wvh.thoriumasm.exec.Executor;
 import net.wvh.thoriumasm.instruction.Instruction;
 import net.wvh.thoriumasm.instruction.math.AddInstruction;
 import net.wvh.thoriumasm.interpreter.AsmParser;
+import net.wvh.thoriumasm.interpreter.ParseException;
 import net.wvh.thoriumasm.state.InstructionStack;
 import net.wvh.thoriumasm.state.RegisterState;
 
@@ -16,9 +17,15 @@ public class Main {
 		String currentVersion = Main.class.getPackage().getImplementationVersion();
 		System.out.println("Thorium Assembler Version v%s".formatted(currentVersion));
 
-		AsmParser parser = new AsmParser("C:/Users/ma200/Downloads/test.tasm");
+		List<InstructionStack> parsedStacks = null;
 
-		List<InstructionStack> parsedStacks = parser.parse();
+		try {
+			AsmParser parser = new AsmParser("C:/Users/ma200/Downloads/test.tasm");
+
+			parsedStacks = parser.parse();
+		} catch (ParseException e) {
+			System.err.println("Failed to parse file: " + e.getMessage());
+		}
 
 		try {
 			RegisterState registerState = new RegisterState();

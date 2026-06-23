@@ -63,7 +63,7 @@ public final class AsmParser {
 			} else if (token.getType() == Token.SYMBOL_DECL) {
 				stack.add(new InstructionStack((String)token.getData()));
 			} else {
-				throw new ParseException("Unknown token");
+				throw new ParseException("Unknown token at line " + currentLine);
 			}
 		}
 
@@ -86,7 +86,7 @@ public final class AsmParser {
 		if (Instruction.isValidSymbol(firstIdentifier)) {
 			return Token.makeInstruction(line, currentLine);
 		} else {
-			throw new ParseException("Unknown identifier");
+			throw new ParseException("Unknown identifier at line " + currentLine);
 		}
 	}
 
