@@ -2,6 +2,7 @@ package net.wvh.thoriumasm.interpreter;
 
 import net.wvh.thoriumasm.instruction.Instruction;
 import net.wvh.thoriumasm.state.InstructionStack;
+import net.wvh.thoriumasm.state.SpecialLabel;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,9 +13,11 @@ import java.util.*;
 public final class AsmParser {
 	private String source;
 	private int index = 0;
-	private int currentLine = 1;
+	private int currentLine = 0;
 
 	private Vector<InstructionStack> stack = null;
+	private Vector<SpecialLabel> specialLabels = null;
+
 	private String lastSymbol = "";
 	private List<String> symbols = null;
 
@@ -34,44 +37,53 @@ public final class AsmParser {
 		this(new File(filePath));
 	}
 
-	public List<InstructionStack> parse() {
+	public void parse() {
 		String[] lines = source.split("\n");
-		if (lines.length == 0) {
-			throw new ParseException("Source text is empty");
-		}
 
 		stack = new Vector<>();
+		specialLabels = new Vector<>();
 
 		Vector<Token> tokens = new Vector<>();
 
 		symbols = parseLabels(lines);
 
 		for (String line : lines) {
-			if (line.isBlank()) {
+			currentLine++;
+
+			String result = prepareLine(line);
+			if (result == null) {
 				continue;
 			}
 
-			tokens.add(parseLine(line.trim()));
-			currentLine++;
+			tokens.add(parseLine(result));
 		}
 
 		if (tokens.size() <= 1) {
 			throw new ParseException("No instructions found");
 		}
 
+		interpretTokens(tokens);
+
+		System.out.println(specialLabels);
+	}
+
+	private void interpretTokens(List<Token> tokens) {
 		for (Token token : tokens) {
 			if (token.getType() == Token.INSTRUCTION) {
-				Instruction instruction = Instruction.deserialize((String)token.getData(), symbols);
+				Instruction instruction = Instruction.deserialize((String)token.getData(), symbols, specialLabels);
 
 				stack.lastElement().enqueue(instruction);
 			} else if (token.getType() == Token.SYMBOL_DECL) {
 				stack.add(new InstructionStack((String)token.getData()));
+			} else if (token.getType() == Token.SPECIAL_LABEL_DECL) {
+				specialLabels.add(SpecialLabel.makeEmpty((String)token.getData()));
+			} else if (token.getType() == Token.SPECIAL_LABEL_PROPERTY) {
+				specialLabels.lastElement().deserialize((String)token.getData());
 			} else {
-				throw new ParseException("Unknown token at line " + currentLine);
+				throw new ParseException("Unknown token %s at line %d"
+					.formatted(token.toString(), currentLine));
 			}
 		}
-
-		return stack;
 	}
 
 	private Token parseLine(String line) {
@@ -79,11 +91,19 @@ public final class AsmParser {
 			return Token.makeSymbolDeclaration(lastSymbol, currentLine);
 		}
 
-		String firstIdentifier = line.split(" ")[0];
+		// special label declaration!
+		if (line.charAt(0) == '%') {
+			String label = line.substring(1, line.length() - 1);
 
-		if (firstIdentifier.charAt(firstIdentifier.length() - 1) == ';') {
-			firstIdentifier = firstIdentifier.substring(0, firstIdentifier.length() - 1);
+			return Token.makeSpecialLabelDeclaration(label, currentLine);
 		}
+
+		// special label property!
+		if (line.charAt(0) == '.') {
+			return Token.makeSpecialLabelProperty(line, currentLine);
+		}
+
+		String firstIdentifier = line.split(" ")[0];
 
 		if (Instruction.isValidSymbol(firstIdentifier)) {
 			return Token.makeInstruction(line, currentLine);
@@ -96,6 +116,10 @@ public final class AsmParser {
 		List<String> result = new ArrayList<>();
 
 		for (String line : lines) {
+			if (line.isEmpty() || line.isBlank()) {
+				continue;
+			}
+
 			String parsed = parseSymbol(line);
 
 			if (!parsed.isEmpty()) {
@@ -107,6 +131,10 @@ public final class AsmParser {
 	}
 
 	private String parseSymbol(String line) {
+		if (line.charAt(0) == '%') {
+			return "";
+		}
+
 		if (line.charAt(line.length() - 1) == ':') {
 			String result = line.substring(0, line.length() - 1);
 
@@ -114,6 +142,37 @@ public final class AsmParser {
 		} else {
 			return "";
 		}
+	}
+
+	// returns null if resulting string is empty
+	private String prepareLine(String line) {
+		String[] splitted = line.split(";");
+
+		String str = splitted[0].trim();
+
+		if (str.isEmpty() || str.isBlank()) {
+			return null;
+		}
+
+		return str;
+	}
+
+	private String[] prepareLines(String[] lines) {
+		if (lines == null || lines.length == 0) {
+			throw new ParseException("Source text is empty");
+		}
+
+		ArrayList<String> result = new ArrayList<>();
+
+		for (String line : lines) {
+			String str = prepareLine(line);
+
+			if (str != null) {
+				result.add(str);
+			}
+		}
+
+		return result.toArray(new String[0]);
 	}
 
 	private Optional<Character> peek() {
@@ -130,5 +189,17 @@ public final class AsmParser {
 
 	private Character consume() {
 		return source.charAt(index++);
+	}
+
+	public List<InstructionStack> getStack() {
+		return stack;
+	}
+
+	public List<SpecialLabel> getSpecialLabels() {
+		return specialLabels;
+	}
+
+	public List<String> getSymbols() {
+		return symbols;
 	}
 }

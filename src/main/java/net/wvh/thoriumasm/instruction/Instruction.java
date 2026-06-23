@@ -2,6 +2,7 @@ package net.wvh.thoriumasm.instruction;
 
 import net.wvh.thoriumasm.core.Variant;
 import net.wvh.thoriumasm.exec.ExecutionState;
+import net.wvh.thoriumasm.state.SpecialLabel;
 import org.reflections.Reflections;
 
 import java.lang.reflect.InvocationTargetException;
@@ -103,16 +104,10 @@ public abstract class Instruction {
 		return getReflectedIdentifier();
 	}
 
-	// symbols parameter can be null
-	public static final Instruction deserialize(String str, List<String> symbols) {
-		String trimmedStr = str.trim();
-
-		int index = 0;
-		if ((index = trimmedStr.indexOf(";")) != -1) {
-			trimmedStr = trimmedStr.substring(0, index);
-		}
-
-		String[] tokens = trimmedStr.split(" ");
+	// symbols & specialLabels parameter can be null
+	public static final Instruction deserialize(String str, List<String> symbols,
+						    List<SpecialLabel> specialLabels) {
+		String[] tokens = str.split(" ");
 
 		if (tokens.length == 0 || tokens.length > 3) {
 			return null;
@@ -136,11 +131,11 @@ public abstract class Instruction {
 		Variant destination = null, source = null;
 
 		if (arg1 != null) {
-			destination = Variant.deserialize(arg1, symbols);
+			destination = Variant.deserialize(arg1, symbols, specialLabels);
 		}
 
 		if (arg2 != null) {
-			source = Variant.deserialize(arg2, symbols);
+			source = Variant.deserialize(arg2, symbols, specialLabels);
 		}
 
 		return Instruction.constructFromSymbol(symbol, destination, source);

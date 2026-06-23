@@ -1,6 +1,7 @@
 package net.wvh.thoriumasm.core;
 
 import net.wvh.thoriumasm.state.RegisterState;
+import net.wvh.thoriumasm.state.SpecialLabel;
 
 import java.util.List;
 
@@ -14,7 +15,8 @@ public final class Variant {
 		STANDARD_REGISTER,
 		SHORT_REGISTER,
 		RETURN_REGISTER,
-		LABEL
+		LABEL,
+		SPECIAL_LABEL
 	}
 
 	public static final Type NUMBER = Type.NUMBER;
@@ -22,6 +24,7 @@ public final class Variant {
 	public static final Type SHORT_REGISTER = Type.SHORT_REGISTER;
 	public static final Type RETURN_REGISTER = Type.RETURN_REGISTER;
 	public static final Type LABEL = Type.LABEL;
+	public static final Type SPECIAL_LABEL = Type.SPECIAL_LABEL;
 
 	private final Type type;
 	private final Object data;
@@ -53,9 +56,14 @@ public final class Variant {
 		return new Variant(LABEL, label);
 	}
 
+	public static Variant makeSpecialLabelVariant(SpecialLabel label) {
+		return new Variant(SPECIAL_LABEL, label);
+	}
+
 	// supports only registers, user numerals and symbols
 	// symbols parameter can be null if you do not want to have symbols from string
-	public static Variant deserialize(String str, List<String> symbols) {
+	public static Variant deserialize(String str, List<String> symbols,
+	                                  List<SpecialLabel> specialLabels) {
 		int result;
 		if ((result = RegisterState.standardRegisterIndexFromString(str))
 			!= Integer.MAX_VALUE) {
@@ -72,6 +80,13 @@ public final class Variant {
 			for (String symbol : symbols) {
 				if (str.equals(symbol)) {
 					return Variant.makeLabelVariant(symbol);
+				}
+			}
+		}
+		if (specialLabels != null) {
+			for (SpecialLabel label : specialLabels) {
+				if (str.equals(label.getLabel())) {
+					return Variant.makeSpecialLabelVariant(label);
 				}
 			}
 		}
@@ -144,6 +159,15 @@ public final class Variant {
 			}
 			case LABEL -> {
 				return (String)data;
+			}
+			case SPECIAL_LABEL -> {
+				SpecialLabel label = (SpecialLabel)data;
+
+				if (label.getData() != null) {
+					return label.getData().toString();
+				} else {
+					return "null";
+				}
 			}
 		}
 
