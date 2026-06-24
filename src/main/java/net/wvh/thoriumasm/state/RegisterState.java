@@ -5,6 +5,9 @@ import net.wvh.thoriumasm.core.Pair;
 import java.util.Arrays;
 import java.util.Vector;
 
+/**
+ * Encapsulates register storage and flags required for program execution
+ */
 public final class RegisterState {
 	// standard registers
 	// regA, regB, regC, regD, regE, regF
@@ -17,6 +20,9 @@ public final class RegisterState {
 	// short registers
 	// reg0, reg1, reg2, reg3, reg4, reg5
 	private byte[] shortRegisters = new byte[6];
+
+	// boolean flags for conditionals & loops
+	private boolean less, equal, greater;
 
 	// returns Integer.MAX_VALUE if failed
 	public static int standardRegisterIndexFromString(String str) {
@@ -117,6 +123,20 @@ public final class RegisterState {
 		}
 	}
 
+	public void setConditionalFlags(Boolean less, Boolean equal, Boolean greater) {
+		if (less != null) {
+			this.less = less;
+		}
+
+		if (equal != null) {
+			this.equal = equal;
+		}
+
+		if (greater != null) {
+			this.greater = greater;
+		}
+	}
+
 	public long[] getStandardRegisters() {
 		return standardRegisters;
 	}
@@ -127,5 +147,13 @@ public final class RegisterState {
 
 	public byte[] getShortRegisters() {
 		return shortRegisters;
+	}
+
+	/**
+	 * Returns conditional flags as an array of booleans
+	 * @return An array of flags in this order: less, equal, greater
+	 */
+	public boolean[] getConditionalFlags() {
+		return new boolean[] { less, equal, greater };
 	}
 }

@@ -49,8 +49,22 @@ public final class Executor {
 
 				currentFrame().incrementIndex();
 
+				if (flag == Instruction.EXECUTION_OK) {
+					continue;
+				}
+
 				if (flag == Instruction.JUMP_LABEL) {
 					pushFrame(findStack(executionState.getNextSymbol()), 0);
+				} else if (flag == Instruction.EXECUTION_BACK) {
+					boolean result = popFrame();
+
+					if (!result) {
+						System.err.println("Cannot use back instruction on entry function!");
+						executing = false;
+					}
+
+					currentFrame().decrementIndex();
+					currentFrame().decrementIndex();
 				} else if (flag == Instruction.EXECUTION_RET) {
 					if (!popFrame()) {
 						executing = false;

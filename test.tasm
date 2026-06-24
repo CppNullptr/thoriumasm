@@ -1,3 +1,9 @@
+loop:
+    inc regC
+    back
+
 _start:
+    cmp regC, 1000000
+    call loop, ifless
     print "Hello, world!"
     ret

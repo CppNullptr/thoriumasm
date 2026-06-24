@@ -46,7 +46,7 @@ public class SubstractInstruction extends Instruction {
 			throw new RuntimeException("Unsupported operands for sub instruction");
 		}
 
-		state.setResultRegister(arg1 - arg2);
+		state.getRegisters().setResultRegister(arg1 - arg2);
 
 		return EXECUTION_OK;
 	}

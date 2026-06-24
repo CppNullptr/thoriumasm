@@ -13,28 +13,8 @@ public final class ExecutionState {
 		this.registers = registers;
 	}
 
-	public long[] getStandardRegisters() {
-		return registers.getStandardRegisters();
-	}
-
-	public long getResultRegister() {
-		return registers.getResultRegister();
-	}
-
-	public byte[] getShortRegisters() {
-		return registers.getShortRegisters();
-	}
-
-	public void setStandardRegisters(Long[] values) {
-		registers.setStandardRegisters(values);
-	}
-
-	public void setResultRegister(long value) {
-		registers.setResultRegister(value);
-	}
-
-	public void setShortRegisters(Byte[] values) {
-		registers.setShortRegisters(values);
+	public RegisterState getRegisters() {
+		return registers;
 	}
 
 	public long getStandardRegisterValue(Variant variant) {

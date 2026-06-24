@@ -38,7 +38,7 @@ public final class IncrementInstruction extends Instruction {
 
 			result[registerIndex] = newValue;
 
-			state.setStandardRegisters(result);
+			state.getRegisters().setStandardRegisters(result);
 		} else if (operand.getType() == Variant.SHORT_REGISTER) {
 			Byte[] result = new Byte[6];
 
@@ -48,7 +48,7 @@ public final class IncrementInstruction extends Instruction {
 
 			result[registerIndex] = newValue;
 
-			state.setShortRegisters(result);
+			state.getRegisters().setShortRegisters(result);
 		} else {
 			throw new InstructionException("This operand is not supported for incrementing",
 				identifier);

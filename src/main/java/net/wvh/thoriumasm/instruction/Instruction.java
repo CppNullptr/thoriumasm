@@ -52,6 +52,9 @@ public abstract class Instruction {
 	// returned by the 'ret' instruction
 	public static final byte EXECUTION_RET = 0x3;
 
+	// returned by the 'back' instruction
+	public static final byte EXECUTION_BACK = 0x4;
+
 	private Variant destination, source;
 
 	protected Instruction(Variant destination, Variant source) {

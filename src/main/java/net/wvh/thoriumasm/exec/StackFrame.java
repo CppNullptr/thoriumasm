@@ -17,6 +17,10 @@ public final class StackFrame {
 		index = newIndex;
 	}
 
+	public void decrementIndex() {
+		index--;
+	}
+
 	public void incrementIndex() {
 		index++;
 	}
@@ -34,6 +38,10 @@ public final class StackFrame {
 	}
 
 	public Instruction getCurrentInstruction() {
-		return stack.elementAt(index);
+		try {
+			return stack.elementAt(index);
+		} catch (IndexOutOfBoundsException e) {
+			return null;
+		}
 	}
 }

@@ -45,7 +45,7 @@ public final class AddInstruction extends Instruction {
 			throw new RuntimeException("Unsupported operands for add instruction");
 		}
 
-		state.setResultRegister(arg1 + arg2);
+		state.getRegisters().setResultRegister(arg1 + arg2);
 
 		return EXECUTION_OK;
 	}

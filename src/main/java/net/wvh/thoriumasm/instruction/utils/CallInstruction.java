@@ -6,6 +6,8 @@ import net.wvh.thoriumasm.exec.StackFrame;
 import net.wvh.thoriumasm.instruction.Instruction;
 import net.wvh.thoriumasm.instruction.InstructionException;
 
+import static net.wvh.thoriumasm.core.Variant.ConditionType;
+
 import java.util.List;
 
 public final class CallInstruction extends Instruction {
@@ -27,8 +29,40 @@ public final class CallInstruction extends Instruction {
 			throw new InstructionException("call instruction requires a label to jump", identifier);
 		}
 
-		state.setNextSymbol((String)getDestination().getData());
+		if (!hasSource()) {
+			state.setNextSymbol((String)getDestination().getData());
 
-		return JUMP_LABEL;
+			return JUMP_LABEL;
+		}
+
+		if (getSource().getType() != Variant.CONDITION) {
+			throw new InstructionException("Second operand of call instruction should be a condition",
+				identifier);
+		}
+
+		ConditionType condition = (ConditionType)getSource().getData();
+
+		boolean flag;
+
+		switch (condition) {
+			case IF_LESS -> {
+				flag = state.getRegisters().getConditionalFlags()[0];
+			} case IF_GREATER -> {
+				flag = state.getRegisters().getConditionalFlags()[1];
+			} case IF_EQUAL -> {
+				flag = state.getRegisters().getConditionalFlags()[2];
+			} default -> {
+				throw new InstructionException("Unsupported condition for call instruction!",
+					identifier);
+			}
+		}
+
+		if (flag) {
+			state.setNextSymbol((String)getDestination().getData());
+
+			return JUMP_LABEL;
+		} else {
+			return EXECUTION_OK;
+		}
 	}
 }
