@@ -1,7 +1,3 @@
-%message:
-    .object ; string
-
 _start:
-    alloc message, "java.lang.String"
-    print message
+    print "Hello, world!"
     ret

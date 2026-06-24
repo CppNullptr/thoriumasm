@@ -25,8 +25,16 @@ public final class ExecutionState {
 		return registers.getShortRegisters();
 	}
 
+	public void setStandardRegisters(Long[] values) {
+		registers.setStandardRegisters(values);
+	}
+
 	public void setResultRegister(long value) {
 		registers.setResultRegister(value);
+	}
+
+	public void setShortRegisters(Byte[] values) {
+		registers.setShortRegisters(values);
 	}
 
 	public long getStandardRegisterValue(Variant variant) {

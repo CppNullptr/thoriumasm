@@ -117,10 +117,6 @@ public final class Variant {
 	}
 
 	public Object getData() {
-		if (type == STANDARD_REGISTER || type == SHORT_REGISTER) {
-			throw new UnsupportedOperationException("Cannot get value from a variant that holds register index");
-		}
-
 		return data;
 	}
 

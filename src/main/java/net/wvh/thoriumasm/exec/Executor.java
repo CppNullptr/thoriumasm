@@ -1,6 +1,7 @@
 package net.wvh.thoriumasm.exec;
 
 import net.wvh.thoriumasm.instruction.Instruction;
+import net.wvh.thoriumasm.instruction.InstructionException;
 import net.wvh.thoriumasm.state.InstructionStack;
 import net.wvh.thoriumasm.state.RegisterState;
 
@@ -57,6 +58,15 @@ public final class Executor {
 				} else if (flag == Instruction.SKIP_NEXT) {
 					currentFrame().incrementIndex();
 				}
+			} catch (IndexOutOfBoundsException e) {
+				// probably somebody forgot to return from _start!
+
+				System.err.println("_start has no 'ret' instruction!");
+
+				executing = false;
+			} catch (InstructionException e) {
+				logExecutionError(e.getInstructionIdentifier(), e.getMessage(), currentFrame().getIndex());
+				currentFrame().incrementIndex();
 			} catch (Throwable e) {
 				logExecutionError("unknown", e.getMessage(), currentFrame().getIndex());
 				currentFrame().incrementIndex();
