@@ -12,14 +12,33 @@ import java.util.List;
 
 public class Main {
 	public static void main(String[] args) {
-		String currentVersion = Main.class.getPackage().getImplementationVersion();
-		System.out.println("Thorium Assembler Version v%s".formatted(currentVersion));
+		StringBuilder messageBuilder = new StringBuilder();
+		messageBuilder.append("TASM Ver v");
+		messageBuilder.append(Main.class.getPackage().getImplementationVersion());
+
+		String filePath = null;
+
+		if (args.length >= 1) {
+			filePath = args[0];
+
+			messageBuilder.append(" interpreting \"");
+			messageBuilder.append(filePath);
+			messageBuilder.append('\"');
+		} else {
+			System.out.println(messageBuilder.toString());
+
+			System.out.println("No file specified for interpretation");
+
+			System.exit(0);
+		}
+
+		System.out.println(messageBuilder.toString());
 
 		List<InstructionStack> parsedStacks = null;
 		List<SpecialLabel> specialLabels = null;
 
 		try {
-			AsmParser parser = new AsmParser("./test.tasm");
+			AsmParser parser = new AsmParser(filePath);
 			parser.parse();
 
 			parsedStacks = parser.getStack();
