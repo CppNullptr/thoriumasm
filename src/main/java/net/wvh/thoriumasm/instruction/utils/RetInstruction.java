@@ -2,8 +2,11 @@ package net.wvh.thoriumasm.instruction.utils;
 
 import net.wvh.thoriumasm.core.Variant;
 import net.wvh.thoriumasm.exec.ExecutionState;
+import net.wvh.thoriumasm.exec.StackFrame;
 import net.wvh.thoriumasm.instruction.Instruction;
 import net.wvh.thoriumasm.instruction.InstructionException;
+
+import java.util.List;
 
 public final class RetInstruction extends Instruction {
 	private static final String identifier = "ret";
@@ -18,8 +21,7 @@ public final class RetInstruction extends Instruction {
 	}
 
 	@Override
-	public byte execute(ExecutionState state, String currentLabel,
-			    int currentIndex) throws InstructionException {
+	public byte execute(ExecutionState state, List<StackFrame> frames) throws InstructionException {
 		return Instruction.EXECUTION_RET;
 	}
 }

@@ -85,6 +85,14 @@ public final class SpecialLabel {
 
 	@Override
 	public String toString() {
-		return type.name() + '#' + label;
+		if (type != OBJECT) {
+			return type.name() + '#' + label;
+		}
+
+		if (data != null) {
+			return data.toString();
+		}
+
+		return "null";
 	}
 }

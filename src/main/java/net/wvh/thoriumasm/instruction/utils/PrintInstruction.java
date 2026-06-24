@@ -2,8 +2,11 @@ package net.wvh.thoriumasm.instruction.utils;
 
 import net.wvh.thoriumasm.core.Variant;
 import net.wvh.thoriumasm.exec.ExecutionState;
+import net.wvh.thoriumasm.exec.StackFrame;
 import net.wvh.thoriumasm.instruction.Instruction;
 import net.wvh.thoriumasm.instruction.InstructionException;
+
+import java.util.List;
 
 public final class PrintInstruction extends Instruction {
 	private static String identifier = "print";
@@ -18,7 +21,7 @@ public final class PrintInstruction extends Instruction {
 	}
 
 	@Override
-	public byte execute(ExecutionState state, String currentSymbol, int currentIndex) throws InstructionException {
+	public byte execute(ExecutionState state, List<StackFrame> frames) throws InstructionException {
 		if (!hasDestination()) {
 			throw new InstructionException("No operand provided for print instruction",
 				identifier);
@@ -29,7 +32,10 @@ public final class PrintInstruction extends Instruction {
 				identifier);
 		}
 
-		System.out.println("<Message>@%d: %s".formatted(currentIndex,
+		StackFrame current = frames.getLast();
+
+		System.out.println("<Message> %s@%d: %s".formatted(current.getLabel(),
+			current.getIndex(),
 			state.formatVariant(getDestination())));
 
 		return EXECUTION_OK;

@@ -2,8 +2,11 @@ package net.wvh.thoriumasm.instruction.utils;
 
 import net.wvh.thoriumasm.core.Variant;
 import net.wvh.thoriumasm.exec.ExecutionState;
+import net.wvh.thoriumasm.exec.StackFrame;
 import net.wvh.thoriumasm.instruction.Instruction;
 import net.wvh.thoriumasm.instruction.InstructionException;
+
+import java.util.List;
 
 public final class CallInstruction extends Instruction {
 	private static final String identifier = "call";
@@ -18,7 +21,7 @@ public final class CallInstruction extends Instruction {
 	}
 
 	@Override
-	public byte execute(ExecutionState state, String currentSymbol, int currentIndex) throws InstructionException {
+	public byte execute(ExecutionState state, List<StackFrame> frames) throws InstructionException {
 		if (!hasDestination() ||
 			getDestination().getType() != Variant.LABEL) {
 			throw new InstructionException("call instruction requires a label to jump", identifier);

@@ -1,17 +1,7 @@
 %message:
-	.object ; this is a string!
+    .object ; string
 
 _start:
-	print regA
-	call some_label
-	print regR
-	ret
-	
-some_label:
-    call another_label
+    alloc message, "java.lang.String"
     print message
     ret
-	
-another_label:
-	add 55555, 55555
-	ret

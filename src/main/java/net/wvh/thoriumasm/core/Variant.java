@@ -16,7 +16,8 @@ public final class Variant {
 		SHORT_REGISTER,
 		RETURN_REGISTER,
 		LABEL,
-		SPECIAL_LABEL
+		SPECIAL_LABEL,
+		STRING_LITERAL,
 	}
 
 	public static final Type NUMBER = Type.NUMBER;
@@ -25,6 +26,7 @@ public final class Variant {
 	public static final Type RETURN_REGISTER = Type.RETURN_REGISTER;
 	public static final Type LABEL = Type.LABEL;
 	public static final Type SPECIAL_LABEL = Type.SPECIAL_LABEL;
+	public static final Type STRING_LITERAL = Type.STRING_LITERAL;
 
 	private final Type type;
 	private final Object data;
@@ -60,6 +62,10 @@ public final class Variant {
 		return new Variant(SPECIAL_LABEL, label);
 	}
 
+	public static Variant makeStringLiteralVariant(String literal) {
+		return new Variant(STRING_LITERAL, literal);
+	}
+
 	// supports only registers, user numerals and symbols
 	// symbols parameter can be null if you do not want to have symbols from string
 	public static Variant deserialize(String str, List<String> symbols,
@@ -76,6 +82,11 @@ public final class Variant {
 		if (str.equals("regR")) {
 			return Variant.makeReturnRegisterVariant();
 		}
+
+		if (str.charAt(0) == '"' && str.charAt(str.length() - 1) == '"') {
+			return Variant.makeStringLiteralVariant(str.replace("\"", ""));
+		}
+
 		if (symbols != null) {
 			for (String symbol : symbols) {
 				if (str.equals(symbol)) {
@@ -91,7 +102,14 @@ public final class Variant {
 			}
 		}
 
-		return Variant.makeNumberVariant(Integer.valueOf(str));
+		try {
+			return Variant.makeNumberVariant(Integer.valueOf(str));
+		} catch (Throwable e) {
+			System.err.println("Failed to serialize argument from %s!"
+				.formatted(str));
+
+			return null;
+		}
 	}
 
 	public Type getType() {
@@ -168,6 +186,9 @@ public final class Variant {
 				} else {
 					return "null";
 				}
+			}
+			case STRING_LITERAL -> {
+				return (String)data;
 			}
 		}
 

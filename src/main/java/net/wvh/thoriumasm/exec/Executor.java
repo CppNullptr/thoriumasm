@@ -1,7 +1,6 @@
 package net.wvh.thoriumasm.exec;
 
 import net.wvh.thoriumasm.instruction.Instruction;
-import net.wvh.thoriumasm.instruction.InstructionException;
 import net.wvh.thoriumasm.state.InstructionStack;
 import net.wvh.thoriumasm.state.RegisterState;
 
@@ -45,8 +44,7 @@ public final class Executor {
 			try {
 				current = nextInstruction();
 
-				byte flag = current.execute(executionState, currentFrame().getStack().getStackLabel(),
-					currentFrame().getIndex());
+				byte flag = current.execute(executionState, stackTrace);
 
 				currentFrame().incrementIndex();
 
@@ -61,6 +59,7 @@ public final class Executor {
 				}
 			} catch (Throwable e) {
 				logExecutionError("unknown", e.getMessage(), currentFrame().getIndex());
+				currentFrame().incrementIndex();
 			}
 		}
 	}

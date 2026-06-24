@@ -2,6 +2,7 @@ package net.wvh.thoriumasm.instruction;
 
 import net.wvh.thoriumasm.core.Variant;
 import net.wvh.thoriumasm.exec.ExecutionState;
+import net.wvh.thoriumasm.exec.StackFrame;
 import net.wvh.thoriumasm.state.SpecialLabel;
 import org.reflections.Reflections;
 
@@ -59,8 +60,7 @@ public abstract class Instruction {
 	}
 
 	// returns a code
-	public abstract byte execute(ExecutionState state, String currentLabel,
-				     int currentIndex) throws InstructionException;
+	public abstract byte execute(ExecutionState state, List<StackFrame> frames) throws InstructionException;
 
 	public final boolean hasDestination() {
 		return destination != null;
@@ -104,45 +104,54 @@ public abstract class Instruction {
 		return getReflectedIdentifier();
 	}
 
-	// symbols & specialLabels parameter can be null
-	public static final Instruction deserialize(String str, List<String> symbols,
-						    List<SpecialLabel> specialLabels) {
-		String[] tokens = str.split(" ");
+	/**
+	 * Constructs a new instruction instance from base <code>instr</code> parameter,
+	 * and optionally from <code>lhs</code> and <code>rhs</code> serving as destination
+	 * and source arguments. They can be null
+	 * @param[in] instr Base instruction token, cannot be null
+	 * @param[in] lhs Destination token with comma removed, can be null
+	 * @param[in] rhs Source token with any whitespace or semicolons removed, can be null
+	 * @param[in] symbols A list of existing symbols, can be null
+	 * @param[in] specialLabels A list of existing special labels, can be null
+	 * @return An Instruction instance, with destination and source optionally null
+	 */
+	public static final Instruction deserialize(String instr, String lhs, String rhs,
+						    List<String> symbols, List<SpecialLabel> specialLabels) {
+		Variant destination = null, source = null;
 
-		if (tokens.length == 0 || tokens.length > 3) {
+		if (lhs != null) {
+			destination = Variant.deserialize(lhs, symbols, specialLabels);
+		}
+
+		if (rhs != null) {
+			source = Variant.deserialize(rhs, symbols, specialLabels);
+		}
+
+		return Instruction.constructFromSymbol(instr, destination, source);
+	}
+
+	/// Tries to get string literal from provided array,
+	/// for example if the array is <code>{'string begins now "hello', ', world!" ends'}</code>,
+	/// it returns "hello, world!". <br>
+	/// @param[in] strs The array of strings to concatenate
+	/// @return Concatenated string literal without quotation marks from <code>str</code> array,
+	/// null otherwise
+	private static String retrieveStringLiteral(String[] strs) {
+		String combined = new String();
+
+		for (String str : strs) {
+			combined += str;
+			combined += ' ';
+		}
+
+		int first = combined.indexOf("\"");
+		int last = combined.lastIndexOf("\"");
+
+		if (first == -1 || last == -1) {
 			return null;
 		}
 
-		String symbol = tokens[0];
-		String arg1 = null, arg2 = null;
-
-		if (tokens.length >= 2) {
-			arg1 = tokens[1];
-
-			if (arg1.charAt(arg1.length() - 1) == ',') {
-				arg1 = arg1.substring(0, arg1.length() - 1);
-			}
-		}
-
-		if (tokens.length == 3) {
-			arg2 = tokens[2];
-		}
-
-		Variant destination = null, source = null;
-
-		if (arg1 != null) {
-			destination = Variant.deserialize(arg1, symbols, specialLabels);
-		}
-
-		if (arg2 != null) {
-			source = Variant.deserialize(arg2, symbols, specialLabels);
-		}
-
-		return Instruction.constructFromSymbol(symbol, destination, source);
-	}
-
-	public final String serialize() {
-		throw new UnsupportedOperationException("Not implemented");
+		return combined.substring(first + 1, last);
 	}
 
 	public static boolean isValidSymbol(String symbol) {

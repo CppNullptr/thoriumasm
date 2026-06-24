@@ -2,7 +2,10 @@ package net.wvh.thoriumasm.instruction.math;
 
 import net.wvh.thoriumasm.core.Variant;
 import net.wvh.thoriumasm.exec.ExecutionState;
+import net.wvh.thoriumasm.exec.StackFrame;
 import net.wvh.thoriumasm.instruction.Instruction;
+
+import java.util.List;
 
 public final class AddInstruction extends Instruction {
 	private static String identifier = "add";
@@ -16,7 +19,7 @@ public final class AddInstruction extends Instruction {
 	}
 
 	@Override
-	public byte execute(ExecutionState state, String currentSymbol, int index) {
+	public byte execute(ExecutionState state, List<StackFrame> frames) {
 		if (!hasDestination() && !hasSource()) {
 			throw new RuntimeException("The add instruction requires a destination and a source");
 		}

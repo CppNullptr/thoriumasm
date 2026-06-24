@@ -29,6 +29,10 @@ public final class StackFrame {
 		return index;
 	}
 
+	public String getLabel() {
+		return stack.getStackLabel();
+	}
+
 	public Instruction getCurrentInstruction() {
 		return stack.elementAt(index);
 	}

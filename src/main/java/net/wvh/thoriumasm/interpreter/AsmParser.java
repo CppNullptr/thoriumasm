@@ -63,14 +63,15 @@ public final class AsmParser {
 		}
 
 		interpretTokens(tokens);
-
-		System.out.println(specialLabels);
 	}
 
 	private void interpretTokens(List<Token> tokens) {
 		for (Token token : tokens) {
 			if (token.getType() == Token.INSTRUCTION) {
-				Instruction instruction = Instruction.deserialize((String)token.getData(), symbols, specialLabels);
+				String[] splitString = splitInstructionToken(token);
+
+				Instruction instruction = Instruction.deserialize(splitString[0], splitString[1],
+					splitString[2], symbols, specialLabels);
 
 				stack.lastElement().enqueue(instruction);
 			} else if (token.getType() == Token.SYMBOL_DECL) {
@@ -141,6 +142,72 @@ public final class AsmParser {
 			return result;
 		} else {
 			return "";
+		}
+	}
+
+	/**
+	 * Splits an instruction token into three parts: instruction itself,
+	 * left hand side and right hand side. The latter two can be null in the resulting array
+	 * @param[in] token A token of type <code>Token.INSTRUCTION</code>, cannot be null
+	 * @return A String array with length always equal to 3
+	 */
+	private String[] splitInstructionToken(Token token) {
+		Object data = token.getData();
+
+		if (!(data instanceof String)) {
+			throw new IllegalArgumentException("Token's data must be of String type");
+		}
+
+		String line = (String)data;
+
+		String[] splitByWhitespace = line.split(" ");
+		String instr = splitByWhitespace[0].trim();
+
+		if (splitByWhitespace.length == 1) {
+			return new String[] { instr, null, null };
+		}
+
+		String rest = new String();
+		String[] args = Arrays.copyOfRange(splitByWhitespace, 1, splitByWhitespace.length);
+
+		for (String arg : args) {
+			rest += arg;
+			rest += ' ';
+		}
+
+		// parsing operands (destination, source)
+
+		List<String> operands = new ArrayList<>();
+
+		StringBuilder builder = new StringBuilder();
+		boolean inString = false;
+
+		for (int i = 0; i < rest.length(); i++) {
+			char c = rest.charAt(i);
+
+			if (c == '"') {
+				inString = !inString;
+				builder.append(c);
+				continue;
+			}
+
+			if (c == ',' && !inString) {
+				operands.add(builder.toString().trim());
+				builder.setLength(0);
+				continue;
+			}
+
+			builder.append(c);
+		}
+
+		if (!builder.isEmpty()) {
+			operands.add(builder.toString().trim());
+		}
+
+		if (operands.size() == 1) {
+			return new String[] { instr, operands.get(0), null };
+		} else {
+			return new String[] { instr, operands.get(0), operands.get(1) };
 		}
 	}
 
