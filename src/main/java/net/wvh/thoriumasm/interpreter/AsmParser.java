@@ -6,8 +6,7 @@ import net.wvh.thoriumasm.instruction.Instruction;
 import net.wvh.thoriumasm.state.InstructionStack;
 import net.wvh.thoriumasm.state.SpecialLabel;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.security.UnresolvedPermission;
 import java.util.*;
 
@@ -25,14 +24,20 @@ public final class AsmParser {
 	private List<String> symbols = null;
 
 	public AsmParser(File file) {
-		try (Scanner scanner = new Scanner(file)) {
+		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 			source = new String();
+			String line;
 
-			while (scanner.hasNextLine()) {
-				source = source.concat(scanner.nextLine() + '\n');
+			while ((line = reader.readLine()) != null) {
+				source = source.concat(line + '\n');
 			}
-		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
 			source = null;
+
+			System.err.println("Failed reading %s: %s"
+				.formatted(file.getName(), e.getMessage()));
+
+			System.exit(0);
 		}
 	}
 
