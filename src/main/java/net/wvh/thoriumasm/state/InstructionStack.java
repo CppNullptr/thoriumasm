@@ -5,9 +5,7 @@ import net.wvh.thoriumasm.instruction.Instruction;
 import java.util.*;
 
 public final class InstructionStack {
-	private final Map<Integer, Instruction> instructions =
-		new HashMap<>();
-	private int index = 0;
+	private final List<Instruction> instructions = new ArrayList<>();
 
 	private final String stackLabel;
 
@@ -16,29 +14,26 @@ public final class InstructionStack {
 	}
 
 	public void printInstructions() {
-		for (Instruction instruction : instructions.values()) {
+		for (Instruction instruction : instructions) {
 			System.out.println("Instruction in stack: " + instruction.toString());
 		}
 	}
 
 	public void enqueue(Instruction instruction) {
-		instructions.put(index, instruction);
-		index++;
+		instructions.addLast(instruction);
 	}
 
 	public Instruction lastElement() {
-		return instructions.get(index);
-	}
-
-	/// Returns an immutable copy of the map
-	public Map<Integer, Instruction> getMap() {
-		return Collections.unmodifiableMap(instructions);
+		return instructions.getLast();
 	}
 
 	public Instruction dequeue() {
-		Instruction instr = instructions.get(index);
-		index--;
+		Instruction instr = instructions.removeLast();
 		return instr;
+	}
+
+	public Instruction get(int index) {
+		return instructions.get(index);
 	}
 
 	public boolean isEmpty() {

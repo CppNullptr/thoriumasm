@@ -7,13 +7,11 @@ import java.util.Map;
 
 public final class StackFrame {
 	private final InstructionStack stack;
-	private Map<Integer, Instruction> instructionMap;
 	private int index;
 
 	public StackFrame(InstructionStack stack,
 			  int index) {
 		this.stack = stack;
-		this.instructionMap = stack.getMap();
 		this.index = index;
 	}
 
@@ -42,6 +40,6 @@ public final class StackFrame {
 	}
 
 	public Instruction getCurrentInstruction() {
-		return instructionMap.get(index);
+		return stack.get(index);
 	}
 }
