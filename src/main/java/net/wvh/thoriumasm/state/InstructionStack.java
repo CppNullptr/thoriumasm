@@ -2,14 +2,12 @@ package net.wvh.thoriumasm.state;
 
 import net.wvh.thoriumasm.instruction.Instruction;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 public final class InstructionStack {
-	private final LinkedList<Instruction> instructions =
-		new LinkedList<>();
+	private final Map<Integer, Instruction> instructions =
+		new HashMap<>();
+	private int index = 0;
 
 	private final String stackLabel;
 
@@ -18,25 +16,29 @@ public final class InstructionStack {
 	}
 
 	public void printInstructions() {
-		for (Instruction instruction : instructions) {
+		for (Instruction instruction : instructions.values()) {
 			System.out.println("Instruction in stack: " + instruction.toString());
 		}
 	}
 
 	public void enqueue(Instruction instruction) {
-		instructions.offer(instruction);
+		instructions.put(index, instruction);
+		index++;
 	}
 
 	public Instruction lastElement() {
-		return instructions.getLast();
-	}
-
-	public Instruction elementAt(int index) {
 		return instructions.get(index);
 	}
 
+	/// Returns an immutable copy of the map
+	public Map<Integer, Instruction> getMap() {
+		return Collections.unmodifiableMap(instructions);
+	}
+
 	public Instruction dequeue() {
-		return instructions.poll();
+		Instruction instr = instructions.get(index);
+		index--;
+		return instr;
 	}
 
 	public boolean isEmpty() {
@@ -52,14 +54,18 @@ public final class InstructionStack {
 		return stackLabel + ':';
 	}
 
-	// returns null if not found
-	public static InstructionStack findStack(List<InstructionStack> list, String label) {
+	public static Map<String, InstructionStack> toMap(List<InstructionStack> list) {
+		Map<String, InstructionStack> result = new HashMap<>();
+
 		for (InstructionStack stack : list) {
-			if (stack.getStackLabel().equals(label)) {
-				return stack;
-			}
+			result.put(stack.stackLabel, stack);
 		}
 
-		return null;
+		return result;
+	}
+
+	// returns null if not found
+	public static InstructionStack findStack(Map<String, InstructionStack> map, String label) {
+		return map.get(label);
 	}
 }

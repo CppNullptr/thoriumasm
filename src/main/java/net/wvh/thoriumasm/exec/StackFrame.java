@@ -3,13 +3,17 @@ package net.wvh.thoriumasm.exec;
 import net.wvh.thoriumasm.instruction.Instruction;
 import net.wvh.thoriumasm.state.InstructionStack;
 
+import java.util.Map;
+
 public final class StackFrame {
-	private InstructionStack stack;
+	private final InstructionStack stack;
+	private Map<Integer, Instruction> instructionMap;
 	private int index;
 
 	public StackFrame(InstructionStack stack,
 			  int index) {
 		this.stack = stack;
+		this.instructionMap = stack.getMap();
 		this.index = index;
 	}
 
@@ -38,10 +42,6 @@ public final class StackFrame {
 	}
 
 	public Instruction getCurrentInstruction() {
-		try {
-			return stack.elementAt(index);
-		} catch (IndexOutOfBoundsException e) {
-			return null;
-		}
+		return instructionMap.get(index);
 	}
 }

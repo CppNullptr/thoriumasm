@@ -7,10 +7,12 @@ import net.wvh.thoriumasm.state.RegisterState;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public final class Executor {
 	private List<StackFrame> stackTrace;
-	private List<InstructionStack> program;
+	private StackFrame currentFrame;
+	private Map<String, InstructionStack> program;
 
 	private RegisterState registers;
 
@@ -19,7 +21,7 @@ public final class Executor {
 
 	public Executor(List<InstructionStack> program, RegisterState registers) {
 		this.stackTrace = new ArrayList<>();
-		this.program = program;
+		this.program = InstructionStack.toMap(program);
 
 		this.registers = registers;
 	}
@@ -34,7 +36,9 @@ public final class Executor {
 
 	private void execute(String symbol, int index) {
 		InstructionStack stack = findStack(symbol);
-		stackTrace.add(new StackFrame(stack, index));
+		StackFrame entryPoint = new StackFrame(stack, index);
+		stackTrace.add(entryPoint);
+		currentFrame = entryPoint;
 
 		boolean executing = true;
 
@@ -47,7 +51,7 @@ public final class Executor {
 
 				byte flag = current.execute(executionState, stackTrace);
 
-				currentFrame().incrementIndex();
+				currentFrame.incrementIndex();
 
 				if (flag == Instruction.EXECUTION_OK) {
 					continue;
@@ -63,14 +67,14 @@ public final class Executor {
 						executing = false;
 					}
 
-					currentFrame().decrementIndex();
-					currentFrame().decrementIndex();
+					currentFrame.decrementIndex();
+					currentFrame.decrementIndex();
 				} else if (flag == Instruction.EXECUTION_RET) {
 					if (!popFrame()) {
 						executing = false;
 					}
 				} else if (flag == Instruction.SKIP_NEXT) {
-					currentFrame().incrementIndex();
+					currentFrame.incrementIndex();
 				}
 			} catch (IndexOutOfBoundsException e) {
 				// probably somebody forgot to return from _start!
@@ -79,21 +83,22 @@ public final class Executor {
 
 				executing = false;
 			} catch (InstructionException e) {
-				logExecutionError(e.getInstructionIdentifier(), e.getMessage(), currentFrame().getIndex());
-				currentFrame().incrementIndex();
+				logExecutionError(e.getInstructionIdentifier(), e.getMessage(), currentFrame.getIndex());
+				currentFrame.incrementIndex();
 			} catch (Throwable e) {
-				logExecutionError("unknown", e.getMessage(), currentFrame().getIndex());
-				currentFrame().incrementIndex();
+				logExecutionError("unknown", e.getMessage(), currentFrame.getIndex());
+				currentFrame.incrementIndex();
 			}
 		}
 	}
 
 	private Instruction nextInstruction() {
-		return currentFrame().getCurrentInstruction();
+		return currentFrame.getCurrentInstruction();
 	}
 
 	private void pushFrame(StackFrame frame) {
 		stackTrace.add(frame);
+		currentFrame = stackTrace.getLast();
 	}
 
 	private void pushFrame(InstructionStack stack, int index) {
@@ -104,18 +109,11 @@ public final class Executor {
 	private boolean popFrame() {
 		if (stackTrace.size() > 1) {
 			StackFrame frame = stackTrace.remove(stackTrace.size() - 1);
+			currentFrame = stackTrace.getLast();
 			return true;
 		}
 
 		return false;
-	}
-
-	private StackFrame currentFrame() {
-		try {
-			return stackTrace.getLast();
-		} catch (Throwable e) {
-			return null;
-		}
 	}
 
 	public void setIndex(int index) {
@@ -125,7 +123,7 @@ public final class Executor {
 	private void logExecutionError(String instructionIdentifier, String errorMessage, int currentIndex) {
 		System.err.println("Executor failed to execute at index " + currentIndex);
 		System.err.println("Error message: " + errorMessage);
-		System.err.println("Stack label: " + currentFrame().getStack().getStackLabel());
+		System.err.println("Stack label: " + currentFrame.getStack().getStackLabel());
 		System.err.println("Instruction: " + instructionIdentifier);
 	}
 

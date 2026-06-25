@@ -3,7 +3,8 @@ loop:
     back
 
 _start:
-    cmp regC, 1000000
+    print "running"
+    cmp regC, 10000000
     call loop, ifless
-    print "Hello, world!"
+    print "finished"
     ret
