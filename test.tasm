@@ -1,10 +1,7 @@
-loop:
-    inc regC
-    back
+; .entry _start
+
+const MESSAGE "Hello, world!"
 
 _start:
-    print "running"
-    cmp regC, 10000000
-    call loop, ifless
-    print "finished"
+    print MESSAGE
     ret

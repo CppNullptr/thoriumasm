@@ -45,6 +45,9 @@ public class Main {
 			specialLabels = parser.getSpecialLabels();
 		} catch (ParseException e) {
 			System.err.println("Failed to parse file: " + e.getMessage());
+		} catch (Throwable e) {
+			System.err.println("%s: %s"
+				.formatted(e.getClass().getSimpleName(), e.getMessage()));
 		}
 
 		try {

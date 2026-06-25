@@ -116,18 +116,48 @@ public abstract class Instruction {
 	 * @param[in] rhs Source token with any whitespace or semicolons removed, can be null
 	 * @param[in] symbols A list of existing symbols, can be null
 	 * @param[in] specialLabels A list of existing special labels, can be null
+	 * @param[in] constants A list of existing constants, can be null
 	 * @return An Instruction instance, with destination and source optionally null
 	 */
 	public static final Instruction deserialize(String instr, String lhs, String rhs,
-						    List<String> symbols, List<SpecialLabel> specialLabels) {
+						    List<String> symbols, List<SpecialLabel> specialLabels,
+						    Map<String, Variant> constants) {
 		Variant destination = null, source = null;
+		boolean shouldDeserializeDestination = false,
+			shouldDeserializeSource = false;
 
 		if (lhs != null) {
-			destination = Variant.deserialize(lhs, symbols, specialLabels);
+			if (constants != null) {
+				for (Map.Entry<String, Variant> constant : constants.entrySet()) {
+					if (constant.getKey().equals(lhs)) {
+						destination = constant.getValue();
+						shouldDeserializeDestination = true;
+
+						break;
+					}
+				}
+			}
+
+			if (!shouldDeserializeDestination) {
+				destination = Variant.deserialize(lhs, symbols, specialLabels);
+			}
 		}
 
 		if (rhs != null) {
-			source = Variant.deserialize(rhs, symbols, specialLabels);
+			if (constants != null) {
+				for (Map.Entry<String, Variant> constant : constants.entrySet()) {
+					if (constant.getKey().equals(rhs)) {
+						source = constant.getValue();
+						shouldDeserializeSource = true;
+
+						break;
+					}
+				}
+			}
+
+			if (!shouldDeserializeSource) {
+				source = Variant.deserialize(rhs, symbols, specialLabels);
+			}
 		}
 
 		return Instruction.constructFromSymbol(instr, destination, source);

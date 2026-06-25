@@ -1,5 +1,7 @@
 package net.wvh.thoriumasm.interpreter;
 
+import net.wvh.thoriumasm.core.Pair;
+import net.wvh.thoriumasm.core.Variant;
 import net.wvh.thoriumasm.instruction.Instruction;
 import net.wvh.thoriumasm.state.InstructionStack;
 import net.wvh.thoriumasm.state.SpecialLabel;
@@ -17,6 +19,7 @@ public final class AsmParser {
 
 	private Vector<InstructionStack> stack = null;
 	private Vector<SpecialLabel> specialLabels = null;
+	private Map<String, Variant> constants = null;
 
 	private String lastSymbol = "";
 	private List<String> symbols = null;
@@ -45,7 +48,10 @@ public final class AsmParser {
 
 		Vector<Token> tokens = new Vector<>();
 
-		symbols = parseLabels(lines);
+		symbols = new ArrayList<>();
+		constants = new HashMap<>();
+
+		preParse(lines);
 
 		for (String line : lines) {
 			currentLine++;
@@ -55,7 +61,11 @@ public final class AsmParser {
 				continue;
 			}
 
-			tokens.add(parseLine(result));
+			Token token = parseLine(result);
+
+			if (token != null) {
+				tokens.add(token);
+			}
 		}
 
 		if (tokens.size() <= 1) {
@@ -71,7 +81,7 @@ public final class AsmParser {
 				String[] splitString = splitInstructionToken(token);
 
 				Instruction instruction = Instruction.deserialize(splitString[0], splitString[1],
-					splitString[2], symbols, specialLabels);
+					splitString[2], symbols, specialLabels, constants);
 
 				stack.lastElement().enqueue(instruction);
 			} else if (token.getType() == Token.SYMBOL_DECL) {
@@ -106,29 +116,70 @@ public final class AsmParser {
 
 		String firstIdentifier = line.split(" ")[0];
 
+		if (firstIdentifier.equals("const")) {
+			return null;
+		}
+
 		if (Instruction.isValidSymbol(firstIdentifier)) {
 			return Token.makeInstruction(line, currentLine);
 		} else {
-			throw new ParseException("Unknown identifier at line " + currentLine);
+			throw new ParseException("Unknown identifier '%s' at line %d"
+				.formatted(firstIdentifier, currentLine));
 		}
 	}
 
-	private List<String> parseLabels(String[] lines) {
-		List<String> result = new ArrayList<>();
-
+	private void preParse(String[] lines) {
 		for (String line : lines) {
-			if (line.isEmpty() || line.isBlank()) {
+			if (line.split(" ")[0].equals("const")) {
+				Pair<String, Variant> constant = parseConstant(line);
+
+				constants.put(constant.left(), constant.right());
+			} else {
+				if (line.isEmpty() || line.isBlank()) {
+					continue;
+				}
+
+				String parsed = parseSymbol(line);
+
+				if (!parsed.isEmpty()) {
+					symbols.add(parsed);
+				}
+			}
+		}
+	}
+
+	private Pair<String, Variant> parseConstant(String line) {
+		String[] split = line.split(" ");
+		String identifier = split[1];
+		String rest = "";
+
+		for (int i = 0; i < split.length; i++) {
+			String str = split[i];
+
+			if (i < 2) {
 				continue;
 			}
 
-			String parsed = parseSymbol(line);
-
-			if (!parsed.isEmpty()) {
-				result.add(parsed);
-			}
+			rest += str;
+			rest += ' ';
 		}
 
-		return result;
+		rest = rest.trim();
+
+		if (rest.charAt(0) == '\"' && rest.charAt(rest.length() - 1) == '\"') {
+			rest = rest.substring(1, rest.length() - 1);
+
+			return new Pair<>(identifier,
+				Variant.makeStringLiteralVariant(rest));
+		}
+
+		try {
+			return new Pair<>(identifier,
+				Variant.makeNumberVariant(Integer.valueOf(rest)));
+		} catch (Throwable e) {}
+
+		throw new UnsupportedOperationException("Failed to parse constant '%s' with value '%s'"
+			.formatted(identifier, rest));
 	}
 
 	private String parseSymbol(String line) {
