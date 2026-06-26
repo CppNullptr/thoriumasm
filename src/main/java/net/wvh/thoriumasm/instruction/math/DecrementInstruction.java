@@ -5,6 +5,7 @@ import net.wvh.thoriumasm.exec.ExecutionState;
 import net.wvh.thoriumasm.exec.StackFrame;
 import net.wvh.thoriumasm.instruction.Instruction;
 import net.wvh.thoriumasm.instruction.InstructionException;
+import net.wvh.thoriumasm.state.SpecialLabel;
 
 import java.util.List;
 
@@ -49,6 +50,19 @@ public final class DecrementInstruction extends Instruction {
 			result[registerIndex] = newValue;
 
 			state.getRegisters().setShortRegisters(result);
+		} else if (operand.getType() == Variant.SPECIAL_LABEL) {
+			SpecialLabel specialLabel = (SpecialLabel)operand.getData();
+
+			Object labelData = specialLabel.getData();
+
+			if (labelData instanceof Number) {
+				Number number = (Number)labelData;
+
+				specialLabel.assignObject(number.longValue() - 1);
+			} else {
+				throw new InstructionException("This special label is not a number",
+					identifier);
+			}
 		} else {
 			throw new InstructionException("This operand is not supported for incrementing",
 				identifier);

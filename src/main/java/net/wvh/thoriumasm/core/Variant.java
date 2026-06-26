@@ -146,6 +146,23 @@ public final class Variant implements Comparable<Variant> {
 		return data;
 	}
 
+	public Object getData(RegisterState registers) {
+		switch (type) {
+			case STANDARD_REGISTER -> {
+				return getStandardRegisterValue(registers);
+			}
+			case SHORT_REGISTER -> {
+				return getShortRegisterValue(registers);
+			}
+			case RETURN_REGISTER -> {
+				return getReturnRegisterValue(registers);
+			}
+			default -> {
+				return data;
+			}
+		}
+	}
+
 	public long getStandardRegisterValue(RegisterState registers) {
 		if (type != STANDARD_REGISTER) {
 			throw new UnsupportedOperationException("Cannot get standard register value from this variant");
@@ -209,7 +226,7 @@ public final class Variant implements Comparable<Variant> {
 				Object labelData = ((SpecialLabel)getData()).getData();
 
 				if (labelData instanceof Number) {
-					thisValue = (long)labelData;
+					thisValue = ((Number)labelData).longValue();
 				} else {
 					throw new IllegalArgumentException("%s is not a number!"
 						.formatted(((SpecialLabel) getData()).getLabel()));
@@ -223,7 +240,7 @@ public final class Variant implements Comparable<Variant> {
 
 		switch (otherType) {
 			case NUMBER -> {
-				otherValue = (int)this.data;
+				otherValue = (int)other.data;
 			}
 			case STANDARD_REGISTER -> {
 				if (registers != null) {

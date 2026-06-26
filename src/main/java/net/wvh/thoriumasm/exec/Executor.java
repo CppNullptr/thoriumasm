@@ -88,6 +88,7 @@ public final class Executor {
 				currentFrame.incrementIndex();
 			} catch (Throwable e) {
 				logExecutionError("unknown", e.getMessage(), currentFrame.getIndex());
+				e.printStackTrace();
 				currentFrame.incrementIndex();
 			}
 		}
