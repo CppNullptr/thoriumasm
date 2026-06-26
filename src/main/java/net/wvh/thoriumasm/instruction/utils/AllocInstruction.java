@@ -45,7 +45,8 @@ public final class AllocInstruction extends Instruction {
 
 			((SpecialLabel)getDestination().getData()).assignObject(allocated);
 		} catch (Throwable e) {
-			System.err.println("Failed to allocated class of type " + className);
+			System.err.println("%s Failed to allocate an instance of %s: %s"
+				.formatted(e.getClass().getSimpleName(), className, e.getMessage()));
 		}
 
 		return EXECUTION_OK;

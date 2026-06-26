@@ -7,7 +7,6 @@ import net.wvh.thoriumasm.interpreter.ParseException;
 import net.wvh.thoriumasm.state.InstructionStack;
 import net.wvh.thoriumasm.state.RegisterState;
 import net.wvh.thoriumasm.state.SpecialLabel;
-
 import java.util.List;
 
 public class Main {
@@ -37,17 +36,22 @@ public class Main {
 		List<InstructionStack> parsedStacks = null;
 		List<SpecialLabel> specialLabels = null;
 
+		String entryPoint = null;
+
 		try {
 			AsmParser parser = new AsmParser(filePath);
 			parser.parse();
 
 			parsedStacks = parser.getStack();
 			specialLabels = parser.getSpecialLabels();
+			entryPoint = parser.getEntryPoint();
 		} catch (ParseException e) {
 			System.err.println("Failed to parse file: " + e.getMessage());
+			System.exit(0);
 		} catch (Throwable e) {
 			System.err.println("%s: %s"
 				.formatted(e.getClass().getSimpleName(), e.getMessage()));
+			System.exit(0);
 		}
 
 		try {
@@ -55,7 +59,7 @@ public class Main {
 
 			Executor executor = new Executor(parsedStacks, registerState);
 
-			executor.executeAll();
+			executor.executeAll(entryPoint);
 		} catch (Throwable e) {
 			System.err.println("Error %s occurred: %s".formatted(e.getClass().getSimpleName(), e.getMessage()));
 		}

@@ -176,160 +176,93 @@ public final class Variant implements Comparable<Variant> {
 		Type thisType = this.type;
 		Type otherType = other.type;
 
-		// massive blob of code incoming!
-		// should be rewritten someday, please
+		long thisValue, otherValue;
 
-		if (thisType == Type.NUMBER) {
-			long thisValue = (int)this.data;
-
-			switch (otherType) {
-				case NUMBER -> {
-					return Integer.compare((int)this.data,
-						(int)other.data);
-				}
-
-				case STANDARD_REGISTER -> {
-					if (registers != null) {
-						long otherValue = other.getStandardRegisterValue(registers);
-
-						return Long.compare(thisValue, otherValue);
-					} else {
-						throw new IllegalArgumentException("Cannot compare this variant without register state");
-					}
-				}
-
-				case SHORT_REGISTER -> {
-					if (registers != null) {
-						byte otherValue = other.getShortRegisterValue(registers);
-
-						if (thisValue < otherValue) {
-							return -1;
-						} else if (thisValue == otherValue) {
-							return 0;
-						} else {
-							return 1;
-						}
-					} else {
-						throw new IllegalArgumentException("Cannot compare this variant without register state");
-					}
-				}
-
-				case RETURN_REGISTER -> {
-					if (registers != null) {
-						long otherValue = other.getReturnRegisterValue(registers);
-
-						return Long.compare(thisValue, otherValue);
-					} else {
-						throw new IllegalArgumentException("Cannot compare this variant without register state");
-					}
-				}
-
-				default -> {
+		switch (thisType) {
+			case NUMBER -> {
+				thisValue = (int)this.data;
+			}
+			case STANDARD_REGISTER -> {
+				if (registers != null) {
+					thisValue = getStandardRegisterValue(registers);
+				} else {
 					throw new IllegalArgumentException("Cannot compare this variant without register state");
 				}
 			}
-		} else if (thisType == Type.STANDARD_REGISTER) {
-			if (registers == null) {
-				throw new NullPointerException("Register state cannot be null for register variants");
-			}
-
-			long thisValue = getStandardRegisterValue(registers);
-
-			switch (otherType) {
-				case NUMBER -> {
-					int otherValue = (int)other.getData();
-
-					return Long.compare(thisValue, otherValue);
-				}
-
-				case STANDARD_REGISTER -> {
-					long otherValue = other.getStandardRegisterValue(registers);
-					return Long.compare(thisValue, otherValue);
-				}
-
-				case SHORT_REGISTER -> {
-					long otherValue = other.getShortRegisterValue(registers);
-					return Long.compare(thisValue, otherValue);
-				}
-
-				case RETURN_REGISTER -> {
-					long otherValue = other.getReturnRegisterValue(registers);
-					return Long.compare(thisValue, otherValue);
-				}
-
-				default -> {
+			case SHORT_REGISTER -> {
+				if (registers != null) {
+					thisValue = getShortRegisterValue(registers);
+				} else {
 					throw new IllegalArgumentException("Cannot compare this variant without register state");
 				}
 			}
-		} else if (thisType == Type.SHORT_REGISTER) {
-			if (registers == null) {
-				throw new NullPointerException("Register state cannot be null for register variants");
-			}
-
-			long thisValue = getShortRegisterValue(registers);
-
-			switch (otherType) {
-				case NUMBER -> {
-					int otherValue = (int)other.getData();
-
-					return Long.compare(thisValue, otherValue);
-				}
-
-				case STANDARD_REGISTER -> {
-					long otherValue = other.getStandardRegisterValue(registers);
-					return Long.compare(thisValue, otherValue);
-				}
-
-				case SHORT_REGISTER -> {
-					long otherValue = other.getShortRegisterValue(registers);
-					return Long.compare(thisValue, otherValue);
-				}
-
-				case RETURN_REGISTER -> {
-					long otherValue = other.getReturnRegisterValue(registers);
-					return Long.compare(thisValue, otherValue);
-				}
-
-				default -> {
+			case RETURN_REGISTER -> {
+				if (registers != null) {
+					thisValue = getReturnRegisterValue(registers);
+				} else {
 					throw new IllegalArgumentException("Cannot compare this variant without register state");
 				}
 			}
-		} else if (thisType == Type.RETURN_REGISTER) {
-			if (registers == null) {
-				throw new NullPointerException("Register state cannot be null for register variants");
+			case SPECIAL_LABEL -> {
+				// allow comparison only if the special label is a number
+
+				Object labelData = ((SpecialLabel)getData()).getData();
+
+				if (labelData instanceof Number) {
+					thisValue = (long)labelData;
+				} else {
+					throw new IllegalArgumentException("%s is not a number!"
+						.formatted(((SpecialLabel) getData()).getLabel()));
+				}
 			}
-
-			long thisValue = getReturnRegisterValue(registers);
-
-			switch (otherType) {
-				case NUMBER -> {
-					int otherValue = (int)other.getData();
-
-					return Long.compare(thisValue, otherValue);
-				}
-
-				case STANDARD_REGISTER -> {
-					long otherValue = other.getStandardRegisterValue(registers);
-					return Long.compare(thisValue, otherValue);
-				}
-
-				case SHORT_REGISTER -> {
-					long otherValue = other.getShortRegisterValue(registers);
-					return Long.compare(thisValue, otherValue);
-				}
-
-				case RETURN_REGISTER -> {
-					long otherValue = other.getReturnRegisterValue(registers);
-					return Long.compare(thisValue, otherValue);
-				}
-
-				default -> {
-					throw new IllegalArgumentException("Cannot compare this variant without register state");
-				}
+			default -> {
+				throw new IllegalArgumentException("Failed to compare %s with %s"
+					.formatted(toString(registers), other.toString(registers)));
 			}
 		}
 
-		throw new UnsupportedOperationException("This variant cannot be compared");
+		switch (otherType) {
+			case NUMBER -> {
+				otherValue = (int)this.data;
+			}
+			case STANDARD_REGISTER -> {
+				if (registers != null) {
+					otherValue = other.getStandardRegisterValue(registers);
+				} else {
+					throw new IllegalArgumentException("Cannot compare this variant without register state");
+				}
+			}
+			case SHORT_REGISTER -> {
+				if (registers != null) {
+					otherValue = other.getShortRegisterValue(registers);
+				} else {
+					throw new IllegalArgumentException("Cannot compare this variant without register state");
+				}
+			}
+			case RETURN_REGISTER -> {
+				if (registers != null) {
+					otherValue = other.getReturnRegisterValue(registers);
+				} else {
+					throw new IllegalArgumentException("Cannot compare this variant without register state");
+				}
+			}
+			case SPECIAL_LABEL -> {
+				Object labelData = ((SpecialLabel)other.getData()).getData();
+
+				if (labelData instanceof Number) {
+					otherValue = (long)labelData;
+				} else {
+					throw new IllegalArgumentException("%s is not a number!"
+						.formatted(((SpecialLabel)other.getData()).getLabel()));
+				}
+			}
+			default -> {
+				throw new IllegalArgumentException("Failed to compare %s with %s"
+					.formatted(other.toString(registers), toString(registers)));
+			}
+		}
+
+		return Long.compare(thisValue, otherValue);
 	}
 
 	@Override

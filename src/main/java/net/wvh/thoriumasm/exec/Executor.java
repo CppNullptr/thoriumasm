@@ -26,16 +26,17 @@ public final class Executor {
 		this.registers = registers;
 	}
 
-	public void executeAll() {
-		try {
-			execute("_start", 0);
-		} catch (Throwable e) {
-			logExecutionError("unknown", e.getMessage(), Integer.MAX_VALUE);
-		}
+	public void executeAll(String entryPoint) {
+		execute(entryPoint, 0);
 	}
 
 	private void execute(String symbol, int index) {
 		InstructionStack stack = findStack(symbol);
+		if (stack == null) {
+			throw new RuntimeException("Failed to call symbol '%s'"
+				.formatted(symbol));
+		}
+
 		StackFrame entryPoint = new StackFrame(stack, index);
 		stackTrace.add(entryPoint);
 		currentFrame = entryPoint;

@@ -1,7 +1,18 @@
-; .entry _start
+.entry _start
 
 const MESSAGE "Hello, world!"
 
-_start:
+%counter:
+    .object
+
+loop:
+    inc counter
     print MESSAGE
+    back
+
+_start:
+    mov counter, 0
+
+    cmp counter, 1000
+    call loop, ifless
     ret

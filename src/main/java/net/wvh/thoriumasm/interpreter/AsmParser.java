@@ -23,6 +23,10 @@ public final class AsmParser {
 	private String lastSymbol = "";
 	private List<String> symbols = null;
 
+	private boolean isInGlobalSpace = true;
+
+	private String entryPoint = "_start";
+
 	public AsmParser(File file) {
 		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 			source = new String();
@@ -104,6 +108,7 @@ public final class AsmParser {
 
 	private Token parseLine(String line) {
 		if (!(lastSymbol = parseSymbol(line)).isEmpty()) {
+			isInGlobalSpace = false;
 			return Token.makeSymbolDeclaration(lastSymbol, currentLine);
 		}
 
@@ -111,12 +116,37 @@ public final class AsmParser {
 		if (line.charAt(0) == '%') {
 			String label = line.substring(1, line.length() - 1);
 
+			isInGlobalSpace = false;
 			return Token.makeSpecialLabelDeclaration(label, currentLine);
 		}
 
-		// special label property!
 		if (line.charAt(0) == '.') {
-			return Token.makeSpecialLabelProperty(line, currentLine);
+			// special label property!
+			if (!isInGlobalSpace) {
+				return Token.makeSpecialLabelProperty(line, currentLine);
+			}
+
+			// global property!
+			String[] separated = line.split(" ");
+
+			if (separated.length == 1) {
+				throw new ParseException("Failed to parse global property: "
+				+ line);
+			}
+
+			String property = separated[0].substring(1, separated[0].length());
+			String content = "";
+
+			for (int i = 0; i < separated.length; i++) {
+				if (i == 0) continue;
+
+				content += separated[i];
+				content += ' ';
+			}
+
+			parseGlobalProperty(property, content.trim());
+
+			return null;
 		}
 
 		String firstIdentifier = line.split(" ")[0];
@@ -185,6 +215,18 @@ public final class AsmParser {
 
 		throw new UnsupportedOperationException("Failed to parse constant '%s' with value '%s'"
 			.formatted(identifier, rest));
+	}
+
+	private void parseGlobalProperty(String property, String content) {
+		switch (property) {
+			case "entry" -> {
+				entryPoint = content;
+			}
+			default -> {
+				throw new IllegalArgumentException("Unknown global property '%s'"
+					.formatted(property));
+			}
+		}
 	}
 
 	private String parseSymbol(String line) {
@@ -324,5 +366,9 @@ public final class AsmParser {
 
 	public List<String> getSymbols() {
 		return symbols;
+	}
+
+	public String getEntryPoint() {
+		return entryPoint;
 	}
 }
