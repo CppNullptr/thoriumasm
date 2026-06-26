@@ -48,9 +48,9 @@ public final class CallInstruction extends Instruction {
 			case IF_LESS -> {
 				flag = state.getRegisters().getConditionalFlags()[0];
 			} case IF_GREATER -> {
-				flag = state.getRegisters().getConditionalFlags()[1];
-			} case IF_EQUAL -> {
 				flag = state.getRegisters().getConditionalFlags()[2];
+			} case IF_EQUAL -> {
+				flag = state.getRegisters().getConditionalFlags()[1];
 			} default -> {
 				throw new InstructionException("Unsupported condition for call instruction!",
 					identifier);

@@ -1,18 +1,28 @@
-.entry _start
+_ifless:
+    print "smaller than 10"
+    ret
 
-const MESSAGE "Hello, world!"
+_ifgreater:
+    print "greater than 10"
+    ret
 
-%counter:
+_ifequal:
+    print "equal to 10"
+    ret
+
+%my_value:
     .object
 
-loop:
-    inc counter
-    print counter
-    back
+const COMPARISON_VALUE 10
 
 _start:
-    mov counter, 0
+    print "Hello, world!"
 
-    cmp counter, 10
-    call loop, ifless
+    mov my_value, 10
+
+    cmp my_value, COMPARISON_VALUE
+    call _ifless, ifless
+    call _ifgreater, ifgreater
+    call _ifequal, ifequal
+
     ret
