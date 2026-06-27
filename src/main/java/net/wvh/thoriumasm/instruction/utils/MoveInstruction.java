@@ -27,14 +27,43 @@ public final class MoveInstruction extends Instruction {
 				identifier);
 		}
 
-		if (getDestination().getType() != Variant.SPECIAL_LABEL) {
-			throw new InstructionException("Destination should be an object special label",
+		Object sourceData = getSource().getData(state.getRegisters());
+
+		if (getDestination().getType() == Variant.SPECIAL_LABEL) {
+			SpecialLabel destination = (SpecialLabel)getDestination().getData();
+
+			destination.assignObject(sourceData);
+		} else if (getDestination().getType() == Variant.STANDARD_REGISTER) {
+			int registerIndex = (Integer)getDestination().getData();
+			Long[] newValues = { null, null, null, null, null, null };
+			try {
+				newValues[registerIndex] = ((Number)sourceData).longValue();
+			} catch (ClassCastException e) {
+				throw new InstructionException("Failed to convert non-number value to place into standard integer",
+					identifier);
+			}
+
+			state.getRegisters().setStandardRegisters(newValues);
+		} else if (getDestination().getType() == Variant.SHORT_REGISTER) {
+			int registerIndex = (Integer)getDestination().getData();
+			Byte[] newValues = { null, null, null, null, null, null };
+			try {
+				newValues[registerIndex] = ((Number)sourceData).byteValue();
+			} catch (ClassCastException e) {
+				throw new InstructionException("Failed to convert non-number value to place into a short integer",
+					identifier);
+			}
+		} else if (getDestination().getType() == Variant.RETURN_REGISTER) {
+			try {
+				state.getRegisters().setResultRegister(((Number)sourceData).longValue());
+			} catch (ClassCastException e) {
+				throw new InstructionException("Failed to put non-number value to place into the return register",
+					identifier);
+			}
+		} else {
+			throw new InstructionException("This operand is not supported for mov instruction",
 				identifier);
 		}
-
-		SpecialLabel destination = (SpecialLabel)getDestination().getData();
-
-		destination.assignObject(getSource().getData(state.getRegisters()));
 
 		return EXECUTION_OK;
 	}

@@ -30,4 +30,6 @@ main:
 
     call debug_std_function
 
+    mov regR, 55
+
     ret
