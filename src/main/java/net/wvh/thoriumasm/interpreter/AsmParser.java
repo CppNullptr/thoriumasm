@@ -247,7 +247,13 @@ public final class AsmParser {
 					importedFiles = new HashSet<>();
 				}
 
-				importedFiles.add(content);
+				String actualPath = content;
+
+				if (!actualPath.endsWith(".tasm")) {
+					actualPath += ".tasm";
+				}
+
+				importedFiles.add(actualPath);
 			}
 			default -> {
 				throw new IllegalArgumentException("Unknown global property '%s'"

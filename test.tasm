@@ -1,5 +1,5 @@
 .entry main
-.import std.tasm
+.import std
 
 _ifless:
     print "smaller than 10"
