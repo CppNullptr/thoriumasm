@@ -7,7 +7,6 @@ import net.wvh.thoriumasm.state.InstructionStack;
 import net.wvh.thoriumasm.state.SpecialLabel;
 
 import java.io.*;
-import java.security.UnresolvedPermission;
 import java.util.*;
 
 // Parses a file and outputs a list of instruction stacks!
@@ -26,21 +25,13 @@ public final class AsmParser {
 	private boolean isInGlobalSpace = true;
 
 	private String entryPoint = "_start";
+	private File originalFile = null;
 
 	public AsmParser(File file) {
-		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-			source = new String();
-			String line;
+		originalFile = file;
+		source = readFile(file);
 
-			while ((line = reader.readLine()) != null) {
-				source = source.concat(line + '\n');
-			}
-		} catch (IOException e) {
-			source = null;
-
-			System.err.println("Failed reading %s: %s"
-				.formatted(file.getName(), e.getMessage()));
-
+		if (source == null) {
 			System.exit(0);
 		}
 	}
@@ -50,15 +41,30 @@ public final class AsmParser {
 	}
 
 	public void parse() {
-		String[] lines = source.split("\n");
+		parse(source);
+	}
 
-		stack = new Vector<>();
-		specialLabels = new Vector<>();
+	public void parse(String text) {
+		String[] lines = text.split("\n");
+
+		if (stack == null) {
+			stack = new Vector<>();
+		}
+
+		if (specialLabels == null) {
+			specialLabels = new Vector<>();
+		}
 
 		Vector<Token> tokens = new Vector<>();
+		Set<String> importedFiles = new HashSet<>();
 
-		symbols = new ArrayList<>();
-		constants = new HashMap<>();
+		if (symbols == null) {
+			symbols = new ArrayList<>();
+		}
+
+		if (constants == null) {
+			constants = new HashMap<>();
+		}
 
 		preParse(lines);
 
@@ -70,7 +76,7 @@ public final class AsmParser {
 				continue;
 			}
 
-			Token token = parseLine(result);
+			Token token = parseLine(result, importedFiles);
 
 			if (token != null) {
 				tokens.add(token);
@@ -80,6 +86,18 @@ public final class AsmParser {
 		if (tokens.size() <= 1) {
 			throw new ParseException("No instructions found");
 		}
+
+		for (String file : importedFiles) {
+			String importedSource = readFile(new File(file));
+
+			if (importedSource == null) {
+				throw new ParseException("Failed to import file " + file);
+			}
+
+			parse(importedSource);
+		}
+
+		importedFiles = null;
 
 		interpretTokens(tokens);
 	}
@@ -106,7 +124,7 @@ public final class AsmParser {
 		}
 	}
 
-	private Token parseLine(String line) {
+	private Token parseLine(String line, Set<String> importedFiles) {
 		if (!(lastSymbol = parseSymbol(line)).isEmpty()) {
 			isInGlobalSpace = false;
 			return Token.makeSymbolDeclaration(lastSymbol, currentLine);
@@ -144,7 +162,8 @@ public final class AsmParser {
 				content += ' ';
 			}
 
-			parseGlobalProperty(property, content.trim());
+			parseGlobalProperty(property, content.trim(),
+				importedFiles);
 
 			return null;
 		}
@@ -217,16 +236,32 @@ public final class AsmParser {
 			.formatted(identifier, rest));
 	}
 
-	private void parseGlobalProperty(String property, String content) {
+	private void parseGlobalProperty(String property, String content,
+					 Set<String> importedFiles) {
 		switch (property) {
 			case "entry" -> {
 				entryPoint = content;
+			}
+			case "import" -> {
+				if (importedFiles == null) {
+					importedFiles = new HashSet<>();
+				}
+
+				importedFiles.add(content);
 			}
 			default -> {
 				throw new IllegalArgumentException("Unknown global property '%s'"
 					.formatted(property));
 			}
 		}
+	}
+
+	private void importFile(String file) {
+		if (new File(file) == originalFile) {
+			throw new ParseException("Trying to import file that is currently being interpreted");
+		}
+
+		parse(file);
 	}
 
 	private String parseSymbol(String line) {
@@ -350,6 +385,26 @@ public final class AsmParser {
 		}
 
 		return Optional.of(source.charAt(index + offset));
+	}
+
+	// returns null if failed
+	private String readFile(File file) {
+		String result = "";
+
+		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+			String line;
+
+			while ((line = reader.readLine()) != null) {
+				result = result.concat(line + '\n');
+			}
+		} catch (IOException e) {
+			result = null;
+
+			System.err.println("Failed reading %s: %s"
+				.formatted(file.getName(), e.getMessage()));
+		}
+
+		return result;
 	}
 
 	private Character consume() {

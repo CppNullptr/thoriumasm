@@ -1,0 +1,3 @@
+debug_std_function:
+    print "hi from std"
+    ret
