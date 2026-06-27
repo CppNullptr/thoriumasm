@@ -1,3 +1,15 @@
+; Somewhat usable STL for Thorium Assembly
+
+; constants
+
+const EXECUTION_OK 0
+const EXECUTION_FAIL 1
+
+const STD_VERSION 1
+const STD_VERSION_STR "1.0.0"
+
+; functions
+
 debug_std_function:
     print "hi from std"
     ret

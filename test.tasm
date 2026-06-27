@@ -19,7 +19,8 @@ _ifequal:
 const COMPARISON_VALUE 10
 
 main:
-    print "Hello, world!"
+    print "Using STL Version: "
+    print STD_VERSION_STR
 
     mov my_value, 10
 
@@ -27,8 +28,6 @@ main:
     call _ifless, ifless
     call _ifgreater, ifgreater
     call _ifequal, ifequal
-
-    call debug_std_function
 
     mov regR, 0
     ret
