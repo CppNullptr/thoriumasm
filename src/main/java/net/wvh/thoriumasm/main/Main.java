@@ -16,6 +16,7 @@ public class Main {
 		messageBuilder.append(Main.class.getPackage().getImplementationVersion());
 
 		String filePath = null;
+		int exitCode = 0;
 
 		if (args.length >= 1) {
 			filePath = args[0];
@@ -60,8 +61,11 @@ public class Main {
 			Executor executor = new Executor(parsedStacks, registerState);
 
 			executor.executeAll(entryPoint);
+			exitCode = executor.getExitCode();
 		} catch (Throwable e) {
 			System.err.println("Error %s occurred: %s".formatted(e.getClass().getSimpleName(), e.getMessage()));
 		}
+
+		System.exit(exitCode);
 	}
 }

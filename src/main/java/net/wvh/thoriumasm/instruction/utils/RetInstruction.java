@@ -22,6 +22,7 @@ public final class RetInstruction extends Instruction {
 
 	@Override
 	public byte execute(ExecutionState state, List<StackFrame> frames) throws InstructionException {
+		state.getRegisters().setExitCode((int) state.getRegisters().getResultRegister());
 		return Instruction.EXECUTION_RET;
 	}
 }

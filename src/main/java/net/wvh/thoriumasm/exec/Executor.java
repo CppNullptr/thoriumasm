@@ -122,6 +122,10 @@ public final class Executor {
 		currentIndex = index;
 	}
 
+	public int getExitCode() {
+		return registers.getExitCode();
+	}
+
 	private void logExecutionError(String instructionIdentifier, String errorMessage, int currentIndex) {
 		System.err.println("Executor failed to execute at index " + currentIndex);
 		System.err.println("Error message: " + errorMessage);

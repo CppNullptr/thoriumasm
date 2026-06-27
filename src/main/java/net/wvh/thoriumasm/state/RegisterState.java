@@ -24,6 +24,9 @@ public final class RegisterState {
 	// boolean flags for conditionals & loops
 	private boolean less, equal, greater;
 
+	// returned by the 'ret' instruction in main function
+	private int exitCode = 0;
+
 	// returns Integer.MAX_VALUE if failed
 	public static int standardRegisterIndexFromString(String str) {
 		switch (str) {
@@ -137,6 +140,10 @@ public final class RegisterState {
 		}
 	}
 
+	public void setExitCode(int value) {
+		exitCode = value;
+	}
+
 	public long[] getStandardRegisters() {
 		return standardRegisters;
 	}
@@ -155,5 +162,9 @@ public final class RegisterState {
 	 */
 	public boolean[] getConditionalFlags() {
 		return new boolean[] { less, equal, greater };
+	}
+
+	public int getExitCode() {
+		return exitCode;
 	}
 }
