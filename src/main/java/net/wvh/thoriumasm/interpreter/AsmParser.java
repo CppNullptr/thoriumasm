@@ -1,5 +1,6 @@
 package net.wvh.thoriumasm.interpreter;
 
+import net.wvh.thoriumasm.core.BasicParser;
 import net.wvh.thoriumasm.core.Pair;
 import net.wvh.thoriumasm.core.Variant;
 import net.wvh.thoriumasm.instruction.Instruction;
@@ -10,11 +11,7 @@ import java.io.*;
 import java.util.*;
 
 // Parses a file and outputs a list of instruction stacks!
-public final class AsmParser {
-	private String source;
-	private int index = 0;
-	private int currentLine = 0;
-
+public final class AsmParser extends BasicParser {
 	private Vector<InstructionStack> stack = null;
 	private Vector<SpecialLabel> specialLabels = null;
 	private Map<String, Variant> constants = null;
@@ -25,11 +22,9 @@ public final class AsmParser {
 	private boolean isInGlobalSpace = true;
 
 	private String entryPoint = "_start";
-	private File originalFile = null;
 
 	public AsmParser(File file) {
-		originalFile = file;
-		source = readFile(file);
+		super(file);
 
 		if (source == null) {
 			System.exit(0);
@@ -40,11 +35,12 @@ public final class AsmParser {
 		this(new File(filePath));
 	}
 
+	@Override
 	public void parse() {
 		parse(source);
 	}
 
-	public void parse(String text) {
+	private void parse(String text) {
 		String[] lines = text.split("\n");
 
 		if (stack == null) {
@@ -88,7 +84,7 @@ public final class AsmParser {
 		}
 
 		for (String file : importedFiles) {
-			String importedSource = readFile(new File(file));
+			String importedSource = BasicParser.readFile(new File(file));
 
 			if (importedSource == null) {
 				throw new ParseException("Failed to import file " + file);
@@ -381,40 +377,9 @@ public final class AsmParser {
 		return result.toArray(new String[0]);
 	}
 
-	private Optional<Character> peek() {
-		return peek(0);
-	}
-
-	private Optional<Character> peek(int offset) {
-		if (index + offset >= source.length()) {
-			return Optional.empty();
-		}
-
-		return Optional.of(source.charAt(index + offset));
-	}
-
-	// returns null if failed
-	private String readFile(File file) {
-		String result = "";
-
-		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-			String line;
-
-			while ((line = reader.readLine()) != null) {
-				result = result.concat(line + '\n');
-			}
-		} catch (IOException e) {
-			result = null;
-
-			System.err.println("Failed reading %s: %s"
-				.formatted(file.getName(), e.getMessage()));
-		}
-
-		return result;
-	}
-
-	private Character consume() {
-		return source.charAt(index++);
+	@Override
+	public Vector<?> getResult() {
+		throw new UnsupportedOperationException("This parser uses getters instead of getResult");
 	}
 
 	public List<InstructionStack> getStack() {

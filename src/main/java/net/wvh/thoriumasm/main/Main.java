@@ -1,5 +1,6 @@
 package net.wvh.thoriumasm.main;
 
+import net.wvh.thoriumasm.core.ArgumentParser;
 import net.wvh.thoriumasm.exec.Executor;
 import net.wvh.thoriumasm.instruction.Instruction;
 import net.wvh.thoriumasm.interpreter.AsmParser;
@@ -18,18 +19,20 @@ public class Main {
 		String filePath = null;
 		int exitCode = 0;
 
-		if (args.length >= 1) {
-			filePath = args[0];
+		ArgumentParser argParser = new ArgumentParser(args);
+		argParser.parse();
+		filePath = argParser.getFilePath();
 
-			messageBuilder.append(" interpreting \"");
-			messageBuilder.append(filePath);
-			messageBuilder.append('\"');
-		} else {
+		if (filePath.isEmpty()) {
 			System.out.println(messageBuilder.toString());
 
 			System.out.println("No file specified for interpretation");
 
 			System.exit(0);
+		} else {
+			messageBuilder.append(" interpreting \"");
+			messageBuilder.append(filePath);
+			messageBuilder.append('\"');
 		}
 
 		System.out.println(messageBuilder.toString());
