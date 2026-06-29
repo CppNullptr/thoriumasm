@@ -12,7 +12,7 @@ public final class ArgumentParser extends BasicParser {
 
 	// concatenates the array into single string
 	public ArgumentParser(String[] strings) {
-		super(String.join(" ", strings));
+		this(String.join(" ", strings));
 	}
 
 	public ArgumentParser(String source) {
@@ -21,9 +21,32 @@ public final class ArgumentParser extends BasicParser {
 
 	@Override
 	public void parse() {
-		while (peek().isPresent()) {
-			while (peek().isPresent() && peek().get() != '-') {
-				filePath += consume();
+		String alphaNumericBuffer = "";
+		boolean insideParameter = false;
+
+		String[] split = source.split(" ");
+
+		for (String arg : split) {
+			if (arg.startsWith("--")) {
+				parseParameter(arg);
+			} else {
+				if (!filePath.isEmpty()) {
+					throw new IllegalArgumentException("Cannot specify file to interpret " +
+						"more than once");
+				} else {
+					filePath = arg;
+				}
+			}
+		}
+	}
+
+	private void parseParameter(String parameter) {
+		switch (parameter) {
+			case "--verbose" -> {
+				verbose = true;
+			}
+			default -> {
+				throw new IllegalArgumentException("Unknown parameter: " + parameter);
 			}
 		}
 	}

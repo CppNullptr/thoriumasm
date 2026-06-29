@@ -29,5 +29,7 @@ main:
     call _ifgreater, ifgreater
     call _ifequal, ifequal
 
+    call debug_std_function
+
     mov regR, 0
     ret

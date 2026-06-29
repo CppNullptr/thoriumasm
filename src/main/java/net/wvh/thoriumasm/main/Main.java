@@ -33,6 +33,11 @@ public class Main {
 			messageBuilder.append(" interpreting \"");
 			messageBuilder.append(filePath);
 			messageBuilder.append('\"');
+
+			if (argParser.isVerbose()) {
+				messageBuilder.append('\n');
+				messageBuilder.append("VERBOSE MODE");
+			}
 		}
 
 		System.out.println(messageBuilder.toString());
@@ -43,7 +48,7 @@ public class Main {
 		String entryPoint = null;
 
 		try {
-			AsmParser parser = new AsmParser(filePath);
+			AsmParser parser = new AsmParser(filePath, argParser.isVerbose());
 			parser.parse();
 
 			parsedStacks = parser.getStack();
@@ -62,6 +67,7 @@ public class Main {
 			RegisterState registerState = new RegisterState();
 
 			Executor executor = new Executor(parsedStacks, registerState);
+			if (argParser.isVerbose()) executor.makeVerbose();
 
 			executor.executeAll(entryPoint);
 			exitCode = executor.getExitCode();

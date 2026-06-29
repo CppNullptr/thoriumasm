@@ -19,6 +19,8 @@ public final class Executor {
 	private byte lastFlag = Instruction.JUMP_LABEL;
 	private int currentIndex = 0;
 
+	private boolean verbose = false;
+
 	public Executor(List<InstructionStack> program, RegisterState registers) {
 		this.stackTrace = new ArrayList<>();
 		this.program = InstructionStack.toMap(program);
@@ -99,6 +101,11 @@ public final class Executor {
 	}
 
 	private void pushFrame(StackFrame frame) {
+		if (verbose) {
+			System.out.println("Pushing frame %s"
+				.formatted(frame.getLabel()));
+		}
+
 		stackTrace.add(frame);
 		currentFrame = stackTrace.getLast();
 	}
@@ -111,6 +118,12 @@ public final class Executor {
 	private boolean popFrame() {
 		if (stackTrace.size() > 1) {
 			StackFrame frame = stackTrace.remove(stackTrace.size() - 1);
+
+			if (verbose) {
+				System.out.println("Popping frame %s"
+					.formatted(frame.getLabel()));
+			}
+
 			currentFrame = stackTrace.getLast();
 			return true;
 		}
@@ -120,6 +133,10 @@ public final class Executor {
 
 	public void setIndex(int index) {
 		currentIndex = index;
+	}
+
+	public void makeVerbose() {
+		verbose = true;
 	}
 
 	public int getExitCode() {

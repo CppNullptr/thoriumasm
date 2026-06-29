@@ -23,16 +23,27 @@ public final class AsmParser extends BasicParser {
 
 	private String entryPoint = "_start";
 
-	public AsmParser(File file) {
+	private final boolean verbose;
+
+	public AsmParser(File file, boolean verbose) {
 		super(file);
+		this.verbose = verbose;
 
 		if (source == null) {
 			System.exit(0);
 		}
 	}
 
+	public AsmParser(File file) {
+		this(file, false);
+	}
+
+	public AsmParser(String filePath, boolean verbose) {
+		this(new File(filePath), verbose);
+	}
+
 	public AsmParser(String filePath) {
-		this(new File(filePath));
+		this(filePath, false);
 	}
 
 	@Override
@@ -94,6 +105,10 @@ public final class AsmParser extends BasicParser {
 		}
 
 		importedFiles = null;
+
+		if (verbose) {
+			System.out.println(tokens);
+		}
 
 		interpretTokens(tokens);
 	}
